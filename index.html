@@ -1,0 +1,8817 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢字 — Тренажёр кандзи</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: white;
+  }
+  h1 { margin-bottom: 5px; text-align: center; }
+  .subtitle { margin-bottom: 15px; opacity: 0.9; text-align: center; }
+  .mode-badge {
+    background: #ffd54f;
+    color: #333;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 15px;
+    display: none;
+  }
+  .mode-badge.show { display: inline-block; }
+  .stats {
+    margin-bottom: 20px;
+    font-size: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stats span { background: rgba(255,255,255,0.2); padding: 5px 14px; border-radius: 20px; }
+  .progress {
+    width: 100%;
+    max-width: 600px;
+    height: 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    transition: width 0.3s;
+  }
+  .card {
+    background: white;
+    color: #333;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+  }
+  /* ---------- Setup ---------- */
+  .setup h2 { color: #764ba2; margin-bottom: 6px; font-size: 22px; }
+  .setup .hint { color: #888; font-size: 14px; margin-bottom: 20px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-weight: bold; color: #555; margin-bottom: 8px; font-size: 15px; }
+  .range-row { display: flex; gap: 12px; align-items: center; }
+  .range-row input {
+    width: 90px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;
+    font-size: 18px; text-align: center; outline: none;
+  }
+  .range-row input:focus { border-color: #764ba2; }
+  .range-row span { color: #888; }
+  .count-info {
+    margin-top: 10px; padding: 12px; background: #f5f0fb; border-radius: 10px;
+    color: #764ba2; font-size: 14px; line-height: 1.5;
+  }
+  .count-info b { font-size: 16px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .preset {
+    padding: 8px 14px; border: 2px solid #e0e0e0; border-radius: 20px;
+    background: #fafafa; cursor: pointer; font-size: 14px; color: #555; transition: all .15s;
+  }
+  .preset:hover { border-color: #764ba2; background: #f0e8fa; }
+  .qcount-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .qcount-row .preset.active { background: #764ba2; color: #fff; border-color: #764ba2; }
+  .setup-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .setup-buttons button {
+    flex: 1; min-width: 160px; padding: 16px; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: bold; cursor: pointer; transition: transform .15s;
+  }
+  .setup-buttons button:hover { transform: scale(1.03); }
+  .btn-start { background: #764ba2; color: #fff; }
+  .btn-random { background: #ffd54f; color: #333; }
+  .presets .preset.active { background: #764ba2; color: #fff; border-color: #764ba2; }
+  .level-badge {
+    display: inline-block; background: #764ba2; color: #fff; border-radius: 8px;
+    padding: 2px 10px; font-size: 13px; font-weight: bold; margin-left: 6px;
+  }
+  /* ---------- Quiz ---------- */
+  .question-label { color: #999; font-size: 14px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .word-display {
+    font-size: 56px; line-height: 1.2; margin-bottom: 12px; color: #333; text-align: center; font-weight: 600;
+  }
+  .kanji-chip {
+    display: inline-block; background: #f0e8fa; color: #764ba2; border-radius: 8px;
+    padding: 2px 10px; font-size: 15px; font-weight: bold; margin-bottom: 14px;
+  }
+  .translation { font-style: italic; color: #666; margin-bottom: 22px; font-size: 17px; text-align: center; }
+  .question-text { font-size: 16px; margin-bottom: 14px; color: #555; }
+  .input-section { margin-bottom: 20px; }
+  .input-row { display: flex; gap: 10px; align-items: stretch; }
+  .romaji-input {
+    flex: 1; padding: 16px 20px; border: 2px solid #e0e0e0; border-radius: 12px;
+    font-size: 20px; font-family: 'Courier New', monospace; outline: none;
+    transition: border-color 0.2s; background: #fafafa;
+  }
+  .romaji-input:focus { border-color: #764ba2; background: white; }
+  .romaji-input.correct { border-color: #4caf50; background: #e8f5e9; }
+  .romaji-input.wrong { border-color: #f44336; background: #ffebee; }
+  .romaji-input:disabled { opacity: 0.7; }
+  .submit-btn {
+    padding: 16px 28px; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;
+    background: #764ba2; color: white; font-weight: bold; transition: transform 0.2s;
+  }
+  .submit-btn:hover:not(:disabled) { transform: scale(1.05); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .hiragana-preview {
+    margin-top: 8px; font-size: 24px; color: #764ba2; font-weight: bold;
+    min-height: 32px; text-align: center; letter-spacing: 2px;
+  }
+  .hint-text { color: #999; font-size: 13px; margin-top: 5px; text-align: center; }
+  .options-section { margin-top: 20px; display: none; }
+  .options-section.show { display: block; }
+  .options-label { color: #c62828; font-weight: bold; margin-bottom: 12px; text-align: center; }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .option {
+    padding: 18px; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 12px;
+    cursor: pointer; font-size: 19px; text-align: center; transition: all 0.2s; font-weight: bold; color: #333;
+  }
+  .option:hover:not(.disabled) { background: #e8e0f5; border-color: #764ba2; transform: translateY(-2px); }
+  .option.correct { background: #4caf50 !important; color: white; border-color: #2e7d32; animation: pulse 0.5s; }
+  .option.wrong { background: #f44336 !important; color: white; border-color: #b71c1c; animation: shake 0.4s; }
+  .option.disabled { cursor: not-allowed; opacity: 0.7; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+  .feedback { margin-top: 20px; padding: 15px; border-radius: 12px; font-size: 15px; line-height: 1.5; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #e8f5e9; color: #2e7d32; border-left: 5px solid #4caf50; }
+  .feedback.wrong { background: #ffebee; color: #c62828; border-left: 5px solid #f44336; }
+  .feedback.partial { background: #fff3e0; color: #e65100; border-left: 5px solid #ff9800; }
+  .feedback strong { font-size: 18px; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button.ctrl {
+    padding: 12px 24px; border: none; border-radius: 25px; font-size: 15px; cursor: pointer;
+    background: white; color: #764ba2; font-weight: bold; transition: transform 0.2s;
+  }
+  button.ctrl:hover:not(:disabled) { transform: scale(1.05); }
+  button.ctrl:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary { background: #ffd54f; color: #333; }
+  button.danger { background: #ff7043; color: white; }
+  /* ---------- Result ---------- */
+  .result-screen { text-align: center; }
+  .result-screen h2 { font-size: 30px; margin-bottom: 15px; color: #764ba2; }
+  .result-score { font-size: 56px; font-weight: bold; margin: 15px 0; color: #4caf50; }
+  .result-emoji { font-size: 70px; margin: 15px 0; }
+  .score-detail { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 10px; }
+  .score-card { background: #f5f5f5; border-radius: 12px; padding: 15px 20px; flex: 1; min-width: 130px; }
+  .score-card .num { font-size: 30px; font-weight: bold; }
+  .score-card.perfect .num { color: #4caf50; }
+  .score-card.partial .num { color: #ff9800; }
+  .score-card.fail .num { color: #f44336; }
+  .score-card .label { font-size: 13px; color: #666; margin-top: 5px; }
+  .mistakes-list { background: #fff3e0; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: left; border-left: 5px solid #ff9800; }
+  .mistakes-list h3 { color: #e65100; margin-bottom: 12px; font-size: 18px; }
+  .mistake-item { padding: 8px 0; border-bottom: 1px solid #ffe0b2; font-size: 15px; }
+  .mistake-item:last-child { border-bottom: none; }
+  .mistake-item .kanji-big { font-size: 24px; color: #764ba2; font-weight: bold; }
+  .result-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+  .hidden { display: none; }
+  @media (max-width: 500px) {
+    .options { grid-template-columns: 1fr; }
+    .word-display { font-size: 44px; }
+    .input-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+  <h1>漢字 Тренажёр кандзи</h1>
+  <p class="subtitle" id="subtitle">База подтягивается из Obsidian</p>
+  <div class="mode-badge" id="modeBadge">🔥 Режим повторения ошибок</div>
+
+  <!-- ===== Экран настройки ===== -->
+  <div class="card setup" id="setupScreen">
+    <h2>Что повторяем?</h2>
+    <p class="hint" id="setupHint"></p>
+
+    <div class="field">
+      <label>Уровень</label>
+      <div class="presets" id="levelButtons"></div>
+    </div>
+
+    <div class="field">
+      <label>Диапазон кандзи (по номерам)</label>
+      <div class="range-row">
+        <input type="number" id="rangeFrom" min="1" value="1">
+        <span>—</span>
+        <input type="number" id="rangeTo" min="1" value="20">
+      </div>
+      <div class="presets" id="rangePresets"></div>
+      <div class="count-info" id="rangeInfo"></div>
+    </div>
+
+    <div class="field">
+      <label>Сколько вопросов</label>
+      <div class="qcount-row" id="qcountRow">
+        <div class="preset" data-count="10">10</div>
+        <div class="preset active" data-count="20">20</div>
+        <div class="preset" data-count="30">30</div>
+        <div class="preset" data-count="50">50</div>
+        <div class="preset" data-count="0">Все</div>
+      </div>
+    </div>
+
+    <div class="setup-buttons">
+      <button class="btn-start" onclick="startFromSetup()">▶️ Начать</button>
+      <button class="btn-random" onclick="startRandomAll()">🎲 Случайные из всех</button>
+    </div>
+  </div>
+
+  <!-- ===== Статистика ===== -->
+  <div class="stats hidden" id="statsBar">
+    <span>Вопрос: <strong id="counter">1 / 20</strong></span>
+    <span>🌟 С первого раза: <strong id="perfectCount">0</strong></span>
+    <span>✏️ Со 2-го раза: <strong id="partialCount">0</strong></span>
+    <span>❌ Ошибок: <strong id="wrongCount">0</strong></span>
+  </div>
+  <div class="progress hidden" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <!-- ===== Квиз ===== -->
+  <div class="card hidden" id="quizCard">
+    <div class="question-label">Прочитай слово</div>
+    <div class="word-display" id="wordDisplay"></div>
+    <div style="text-align:center"><span class="kanji-chip" id="kanjiChip"></span></div>
+    <div class="translation" id="translation"></div>
+    <div class="question-text">Введи чтение слова латиницей (romaji):</div>
+
+    <div class="input-section" id="inputSection">
+      <div class="input-row">
+        <input type="text" class="romaji-input" id="romajiInput"
+               placeholder="например: nihonjin" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="submit-btn" id="submitBtn" onclick="checkRomaji()">Проверить</button>
+      </div>
+      <div class="hiragana-preview" id="hiraganaPreview"></div>
+      <div class="hint-text">💡 shi, chi, tsu, fu, ji, kya, sha … Долгие гласные: ou, uu или ō, ū</div>
+    </div>
+
+    <div class="options-section" id="optionsSection">
+      <div class="options-label">😅 Не страшно! Выбери правильный вариант:</div>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ===== Кнопки управления ===== -->
+  <div class="controls hidden" id="controls">
+    <button id="nextBtn" class="ctrl primary hidden" onclick="nextQuestion()">Следующий ➡️</button>
+    <button class="ctrl" onclick="goSetup()">⚙️ Настройки</button>
+    <button id="reviewBtn" class="ctrl danger" onclick="startReviewMode()" disabled>🔥 Повторить ошибки (<span id="mistakeBadge">0</span>)</button>
+  </div>
+
+  <!-- ===== Результат ===== -->
+  <div class="card result-screen hidden" id="resultScreen">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <h2 id="resultTitle">Тест завершён!</h2>
+    <div class="result-score" id="resultScore">0 / 20</div>
+
+    <div class="score-detail">
+      <div class="score-card perfect"><div class="num" id="finalPerfect">0</div><div class="label">🌟 С первого раза</div></div>
+      <div class="score-card partial"><div class="num" id="finalPartial">0</div><div class="label">✏️ Со 2-го раза</div></div>
+      <div class="score-card fail"><div class="num" id="finalWrong">0</div><div class="label">❌ Не угадал</div></div>
+    </div>
+
+    <p id="resultMessage" style="font-size: 17px; color: #666;"></p>
+
+    <div class="mistakes-list hidden" id="mistakesList">
+      <h3>📝 Слова для повторения:</h3>
+      <div id="mistakesContent"></div>
+    </div>
+
+    <div class="result-buttons">
+      <button class="ctrl primary" onclick="restartQuiz()">🔄 Пройти ещё раз</button>
+      <button id="reviewResultBtn" class="ctrl danger hidden" onclick="startReviewMode()">🔥 Проработать ошибки</button>
+      <button class="ctrl" onclick="goSetup()">⚙️ Другой диапазон</button>
+    </div>
+  </div>
+
+<script>
+/* KANJI_DATA_START — содержимое генерируется build.py, вручную не редактировать */
+// АВТОГЕНЕРАЦИЯ — не редактируй вручную.
+// Источник: 漢字一覧.md (Obsidian). Пересборка: python3 build.py
+const KANJI_DATA = [
+ {
+  "num": 1,
+  "kanji": "人",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "人",
+    "reading": "じん",
+    "translation": "человек (национальность)"
+   },
+   {
+    "word": "日本人",
+    "reading": "にほんじん",
+    "translation": "японец"
+   },
+   {
+    "word": "一人",
+    "reading": "ひとり",
+    "translation": "один человек"
+   },
+   {
+    "word": "人形",
+    "reading": "にんぎょう",
+    "translation": "кукла"
+   },
+   {
+    "word": "大人",
+    "reading": "おとな",
+    "translation": "взрослый"
+   },
+   {
+    "word": "人",
+    "reading": "ひと",
+    "translation": "человек"
+   },
+   {
+    "word": "二人",
+    "reading": "ふたり",
+    "translation": "два человека"
+   },
+   {
+    "word": "アメリカ人",
+    "reading": "あめりかじん",
+    "translation": "американец"
+   },
+   {
+    "word": "人々",
+    "reading": "ひとびと",
+    "translation": "люди"
+   }
+  ]
+ },
+ {
+  "num": 2,
+  "kanji": "男",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "男性",
+    "reading": "だんせい",
+    "translation": "мужчина"
+   },
+   {
+    "word": "男",
+    "reading": "おとこ",
+    "translation": "мужчина"
+   },
+   {
+    "word": "男の子",
+    "reading": "おとこのこ",
+    "translation": "мальчик"
+   }
+  ]
+ },
+ {
+  "num": 3,
+  "kanji": "女",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "女性",
+    "reading": "じょせい",
+    "translation": "женщина"
+   },
+   {
+    "word": "女",
+    "reading": "おんな",
+    "translation": "женщина"
+   },
+   {
+    "word": "彼女",
+    "reading": "かのじょ",
+    "translation": "она"
+   },
+   {
+    "word": "女の子",
+    "reading": "おんなのこ",
+    "translation": "девочка"
+   }
+  ]
+ },
+ {
+  "num": 4,
+  "kanji": "子",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "男子",
+    "reading": "だんし",
+    "translation": "мальчик"
+   },
+   {
+    "word": "子供",
+    "reading": "こども",
+    "translation": "ребенок"
+   },
+   {
+    "word": "男の子",
+    "reading": "おとこのこ",
+    "translation": "мальчик"
+   },
+   {
+    "word": "女子",
+    "reading": "じょし",
+    "translation": "девочка"
+   }
+  ]
+ },
+ {
+  "num": 5,
+  "kanji": "車",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "電車",
+    "reading": "でんしゃ",
+    "translation": "поезд"
+   },
+   {
+    "word": "車",
+    "reading": "くるま",
+    "translation": "автомобиль"
+   }
+  ]
+ },
+ {
+  "num": 6,
+  "kanji": "山",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "山",
+    "reading": "やま",
+    "translation": "гора"
+   }
+  ]
+ },
+ {
+  "num": 7,
+  "kanji": "川",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "川",
+    "reading": "かわ",
+    "translation": "река"
+   },
+   {
+    "word": "ナイル川",
+    "reading": "ないるがわ",
+    "translation": "река Нил"
+   },
+   {
+    "word": "中川",
+    "reading": "なかがわ",
+    "translation": "фамилия Накагава"
+   }
+  ]
+ },
+ {
+  "num": 8,
+  "kanji": "田",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "田",
+    "reading": "た",
+    "translation": "рисовое поле"
+   },
+   {
+    "word": "田んぼ",
+    "reading": "たんぼ",
+    "translation": "рисовое поле"
+   },
+   {
+    "word": "田中",
+    "reading": "たなか",
+    "translation": "фамилия Танака"
+   },
+   {
+    "word": "山田",
+    "reading": "やまだ",
+    "translation": "фамилия Ямада"
+   }
+  ]
+ },
+ {
+  "num": 9,
+  "kanji": "米",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "米",
+    "reading": "こめ",
+    "translation": "рис"
+   }
+  ]
+ },
+ {
+  "num": 10,
+  "kanji": "雨",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "雨",
+    "reading": "あめ",
+    "translation": "дождь"
+   }
+  ]
+ },
+ {
+  "num": 11,
+  "kanji": "上",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "上",
+    "reading": "じょう",
+    "translation": "верх, над"
+   },
+   {
+    "word": "上",
+    "reading": "うえ",
+    "translation": "вверх, наверх"
+   },
+   {
+    "word": "上がる",
+    "reading": "あがる",
+    "translation": "подниматься"
+   },
+   {
+    "word": "上手",
+    "reading": "じょうず",
+    "translation": "умелый"
+   }
+  ]
+ },
+ {
+  "num": 12,
+  "kanji": "中",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "中",
+    "reading": "ちゅう",
+    "translation": "середина, внутри"
+   },
+   {
+    "word": "中学校",
+    "reading": "ちゅうがっこう",
+    "translation": "средняя школа"
+   },
+   {
+    "word": "中学生",
+    "reading": "ちゅうがくせい",
+    "translation": "ученик средней школы"
+   },
+   {
+    "word": "午前中",
+    "reading": "ごぜんちゅう",
+    "translation": "до полудня"
+   },
+   {
+    "word": "田中",
+    "reading": "たなか",
+    "translation": "Танака (фамилия)"
+   },
+   {
+    "word": "世界中",
+    "reading": "せかいじゅう",
+    "translation": "по всему миру"
+   }
+  ]
+ },
+ {
+  "num": 13,
+  "kanji": "下",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "下",
+    "reading": "か",
+    "translation": "низ, под"
+   },
+   {
+    "word": "地下鉄",
+    "reading": "ちかてつ",
+    "translation": "метро"
+   },
+   {
+    "word": "下着",
+    "reading": "したぎ",
+    "translation": "нижнее белье"
+   },
+   {
+    "word": "下手",
+    "reading": "へた",
+    "translation": "неумелый"
+   }
+  ]
+ },
+ {
+  "num": 14,
+  "kanji": "左",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "左",
+    "reading": "ひだり",
+    "translation": "лево"
+   }
+  ]
+ },
+ {
+  "num": 15,
+  "kanji": "右",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "右",
+    "reading": "みぎ",
+    "translation": "право"
+   }
+  ]
+ },
+ {
+  "num": 16,
+  "kanji": "明",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "明",
+    "reading": "めい",
+    "translation": "светлый, ясный"
+   },
+   {
+    "word": "明るい",
+    "reading": "あかるい",
+    "translation": "светлый"
+   },
+   {
+    "word": "説明",
+    "reading": "せつめい",
+    "translation": "объяснение"
+   },
+   {
+    "word": "明日",
+    "reading": "あした",
+    "translation": "завтра"
+   }
+  ]
+ },
+ {
+  "num": 17,
+  "kanji": "休",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "休",
+    "reading": "やす",
+    "translation": "отдыхать"
+   },
+   {
+    "word": "休む",
+    "reading": "やすむ",
+    "translation": "отдыхать, отсутствовать"
+   },
+   {
+    "word": "休み",
+    "reading": "やすみ",
+    "translation": "отдых, перерыв, выходной"
+   }
+  ]
+ },
+ {
+  "num": 18,
+  "kanji": "林",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "林",
+    "reading": "はやし",
+    "translation": "лес, роща"
+   },
+   {
+    "word": "林",
+    "reading": "はやし",
+    "translation": "Хаяши (фамилия)"
+   }
+  ]
+ },
+ {
+  "num": 19,
+  "kanji": "森",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "森",
+    "reading": "もり",
+    "translation": "лес"
+   },
+   {
+    "word": "森",
+    "reading": "もり",
+    "translation": "Мори (фамилия)"
+   }
+  ]
+ },
+ {
+  "num": 20,
+  "kanji": "好",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "好",
+    "reading": "す",
+    "translation": "нравиться"
+   },
+   {
+    "word": "好き",
+    "reading": "すき",
+    "translation": "нравится"
+   },
+   {
+    "word": "大好き",
+    "reading": "だいすき",
+    "translation": "очень нравится"
+   }
+  ]
+ },
+ {
+  "num": 21,
+  "kanji": "一",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "一",
+    "reading": "いち",
+    "translation": "один"
+   },
+   {
+    "word": "一月",
+    "reading": "いちがつ",
+    "translation": "январь"
+   },
+   {
+    "word": "一日",
+    "reading": "ついたち",
+    "translation": "первый день месяца"
+   },
+   {
+    "word": "一度",
+    "reading": "いちど",
+    "translation": "один раз"
+   },
+   {
+    "word": "一人",
+    "reading": "ひとり",
+    "translation": "один человек"
+   },
+   {
+    "word": "一時",
+    "reading": "いちじ",
+    "translation": "один час"
+   }
+  ]
+ },
+ {
+  "num": 22,
+  "kanji": "二",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "二",
+    "reading": "に",
+    "translation": "два"
+   },
+   {
+    "word": "二月",
+    "reading": "にがつ",
+    "translation": "февраль"
+   },
+   {
+    "word": "二日",
+    "reading": "ふつか",
+    "translation": "второй день месяца"
+   },
+   {
+    "word": "二十歳",
+    "reading": "はたち",
+    "translation": "двадцать лет"
+   },
+   {
+    "word": "二人",
+    "reading": "ふたり",
+    "translation": "два человека"
+   },
+   {
+    "word": "二時",
+    "reading": "にじ",
+    "translation": "два часа"
+   }
+  ]
+ },
+ {
+  "num": 23,
+  "kanji": "三",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "三",
+    "reading": "さん",
+    "translation": "три"
+   },
+   {
+    "word": "三月",
+    "reading": "さんがつ",
+    "translation": "март"
+   },
+   {
+    "word": "三日",
+    "reading": "みっか",
+    "translation": "третий день месяца"
+   },
+   {
+    "word": "三時",
+    "reading": "さんじ",
+    "translation": "три часа"
+   },
+   {
+    "word": "三人",
+    "reading": "さんにん",
+    "translation": "три человека"
+   }
+  ]
+ },
+ {
+  "num": 24,
+  "kanji": "四",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "四",
+    "reading": "し",
+    "translation": "четыре"
+   },
+   {
+    "word": "四月",
+    "reading": "しがつ",
+    "translation": "апрель"
+   },
+   {
+    "word": "四日",
+    "reading": "よっか",
+    "translation": "четвертый день месяца"
+   },
+   {
+    "word": "四人",
+    "reading": "よにん",
+    "translation": "четыре человека"
+   },
+   {
+    "word": "四時",
+    "reading": "よじ",
+    "translation": "четыре часа"
+   }
+  ]
+ },
+ {
+  "num": 25,
+  "kanji": "五",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "五",
+    "reading": "ご",
+    "translation": "пять"
+   },
+   {
+    "word": "五月",
+    "reading": "ごがつ",
+    "translation": "май"
+   },
+   {
+    "word": "五日",
+    "reading": "いつか",
+    "translation": "пятый день месяца"
+   },
+   {
+    "word": "五時",
+    "reading": "ごじ",
+    "translation": "пять часов"
+   },
+   {
+    "word": "五人",
+    "reading": "ごにん",
+    "translation": "пять человек"
+   }
+  ]
+ },
+ {
+  "num": 26,
+  "kanji": "六",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "六",
+    "reading": "ろく",
+    "translation": "шесть"
+   },
+   {
+    "word": "六月",
+    "reading": "ろくがつ",
+    "translation": "июнь"
+   },
+   {
+    "word": "六日",
+    "reading": "むいか",
+    "translation": "шестой день месяца"
+   },
+   {
+    "word": "六時",
+    "reading": "ろくじ",
+    "translation": "шесть часов"
+   },
+   {
+    "word": "六百",
+    "reading": "ろっぴゃく",
+    "translation": "шестьсот"
+   }
+  ]
+ },
+ {
+  "num": 27,
+  "kanji": "七",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "七",
+    "reading": "しち",
+    "translation": "семь"
+   },
+   {
+    "word": "七月",
+    "reading": "しちがつ",
+    "translation": "июль"
+   },
+   {
+    "word": "七日",
+    "reading": "なのか",
+    "translation": "седьмой день месяца"
+   },
+   {
+    "word": "七時",
+    "reading": "しちじ",
+    "translation": "семь часов"
+   }
+  ]
+ },
+ {
+  "num": 28,
+  "kanji": "八",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "八",
+    "reading": "はち",
+    "translation": "восемь"
+   },
+   {
+    "word": "八月",
+    "reading": "はちがつ",
+    "translation": "август"
+   },
+   {
+    "word": "八日",
+    "reading": "ようか",
+    "translation": "восьмой день месяца"
+   },
+   {
+    "word": "八時",
+    "reading": "はちじ",
+    "translation": "восемь часов"
+   },
+   {
+    "word": "八百",
+    "reading": "はっぴゃく",
+    "translation": "восемьсот"
+   }
+  ]
+ },
+ {
+  "num": 29,
+  "kanji": "九",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "九",
+    "reading": "きゅう",
+    "translation": "девять"
+   },
+   {
+    "word": "九月",
+    "reading": "くがつ",
+    "translation": "сентябрь"
+   },
+   {
+    "word": "九日",
+    "reading": "ここのか",
+    "translation": "девятый день месяца"
+   },
+   {
+    "word": "九時",
+    "reading": "くじ",
+    "translation": "девять часов"
+   },
+   {
+    "word": "九百",
+    "reading": "きゅうひゃく",
+    "translation": "девятьсот"
+   }
+  ]
+ },
+ {
+  "num": 30,
+  "kanji": "十",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "十",
+    "reading": "じゅう",
+    "translation": "десять"
+   },
+   {
+    "word": "十月",
+    "reading": "じゅうがつ",
+    "translation": "октябрь"
+   },
+   {
+    "word": "十一月",
+    "reading": "じゅういちがつ",
+    "translation": "ноябрь"
+   },
+   {
+    "word": "十二月",
+    "reading": "じゅうにがつ",
+    "translation": "декабрь"
+   },
+   {
+    "word": "十分",
+    "reading": "じゅっぷん",
+    "translation": "десять минут"
+   },
+   {
+    "word": "十時",
+    "reading": "じゅうじ",
+    "translation": "десять часов"
+   },
+   {
+    "word": "十日",
+    "reading": "とおか",
+    "translation": "десятый день месяца"
+   }
+  ]
+ },
+ {
+  "num": 31,
+  "kanji": "百",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "百",
+    "reading": "ひゃく",
+    "translation": "сто"
+   },
+   {
+    "word": "三百",
+    "reading": "さんびゃく",
+    "translation": "триста"
+   },
+   {
+    "word": "六百",
+    "reading": "ろっぴゃく",
+    "translation": "шестьсот"
+   },
+   {
+    "word": "八百",
+    "reading": "はっぴゃく",
+    "translation": "восемьсот"
+   },
+   {
+    "word": "八百屋",
+    "reading": "やおや",
+    "translation": "овощной магазин"
+   }
+  ]
+ },
+ {
+  "num": 32,
+  "kanji": "千",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "千",
+    "reading": "せん",
+    "translation": "тысяча"
+   },
+   {
+    "word": "千円",
+    "reading": "せんえん",
+    "translation": "тысяча йен"
+   },
+   {
+    "word": "三千",
+    "reading": "さんぜん",
+    "translation": "три тысячи"
+   },
+   {
+    "word": "八千",
+    "reading": "はっせん",
+    "translation": "восемь тысяч"
+   }
+  ]
+ },
+ {
+  "num": 33,
+  "kanji": "万",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "万",
+    "reading": "まん",
+    "translation": "десять тысяч"
+   },
+   {
+    "word": "一万",
+    "reading": "いちまん",
+    "translation": "десять тысяч"
+   },
+   {
+    "word": "百万",
+    "reading": "ひゃくまん",
+    "translation": "один миллион"
+   }
+  ]
+ },
+ {
+  "num": 34,
+  "kanji": "円",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "円",
+    "reading": "えん",
+    "translation": "круг, йена"
+   },
+   {
+    "word": "～円",
+    "reading": "～えん",
+    "translation": "йена"
+   }
+  ]
+ },
+ {
+  "num": 35,
+  "kanji": "色",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "色",
+    "reading": "いろ",
+    "translation": "цвет"
+   },
+   {
+    "word": "オレンジ色",
+    "reading": "おれんじいろ",
+    "translation": "оранжевый цвет"
+   }
+  ]
+ },
+ {
+  "num": 36,
+  "kanji": "白",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "白",
+    "reading": "しろ",
+    "translation": "белый"
+   },
+   {
+    "word": "白い",
+    "reading": "しろい",
+    "translation": "белый"
+   }
+  ]
+ },
+ {
+  "num": 37,
+  "kanji": "黒",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "黒",
+    "reading": "くろ",
+    "translation": "черный"
+   },
+   {
+    "word": "黒い",
+    "reading": "くろい",
+    "translation": "черный"
+   }
+  ]
+ },
+ {
+  "num": 38,
+  "kanji": "赤",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "赤",
+    "reading": "あか",
+    "translation": "красный"
+   },
+   {
+    "word": "赤い",
+    "reading": "あかい",
+    "translation": "красный"
+   },
+   {
+    "word": "赤ちゃん",
+    "reading": "あかちゃん",
+    "translation": "младенец"
+   }
+  ]
+ },
+ {
+  "num": 39,
+  "kanji": "青",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "青",
+    "reading": "あお",
+    "translation": "синий, голубой"
+   },
+   {
+    "word": "青い",
+    "reading": "あおい",
+    "translation": "синий, голубой"
+   }
+  ]
+ },
+ {
+  "num": 40,
+  "kanji": "黄",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "黄",
+    "reading": "き",
+    "translation": "желтый"
+   },
+   {
+    "word": "黄色",
+    "reading": "きいろ",
+    "translation": "желтый"
+   }
+  ]
+ },
+ {
+  "num": 41,
+  "kanji": "月",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "月曜日",
+    "reading": "げつようび",
+    "translation": "Понедельник"
+   },
+   {
+    "word": "一月",
+    "reading": "いちがつ",
+    "translation": "Январь"
+   },
+   {
+    "word": "先月",
+    "reading": "せんげつ",
+    "translation": "Прошлый месяц"
+   },
+   {
+    "word": "正月",
+    "reading": "しょうがつ",
+    "translation": "Новый год"
+   }
+  ]
+ },
+ {
+  "num": 42,
+  "kanji": "火",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "火曜日",
+    "reading": "かようび",
+    "translation": "Вторник"
+   },
+   {
+    "word": "火事",
+    "reading": "かじ",
+    "translation": "Пожар"
+   }
+  ]
+ },
+ {
+  "num": 43,
+  "kanji": "水",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "水曜日",
+    "reading": "すいようび",
+    "translation": "Среда"
+   },
+   {
+    "word": "水道",
+    "reading": "すいどう",
+    "translation": "Водоснабжение"
+   },
+   {
+    "word": "水泳",
+    "reading": "すいえい",
+    "translation": "Плавание"
+   }
+  ]
+ },
+ {
+  "num": 44,
+  "kanji": "木",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "木曜日",
+    "reading": "もくようび",
+    "translation": "Четверг"
+   },
+   {
+    "word": "木",
+    "reading": "き",
+    "translation": "Дерево"
+   }
+  ]
+ },
+ {
+  "num": 45,
+  "kanji": "金",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "金曜日",
+    "reading": "きんようび",
+    "translation": "Пятница"
+   },
+   {
+    "word": "お金",
+    "reading": "おかね",
+    "translation": "Деньги"
+   },
+   {
+    "word": "お金持ち",
+    "reading": "おかねもち",
+    "translation": "Богатый человек"
+   }
+  ]
+ },
+ {
+  "num": 46,
+  "kanji": "土",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "土曜日",
+    "reading": "どようび",
+    "translation": "Суббота"
+   },
+   {
+    "word": "お土産",
+    "reading": "おみやげ",
+    "translation": "Сувенир"
+   }
+  ]
+ },
+ {
+  "num": 47,
+  "kanji": "日",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "日曜日",
+    "reading": "にちようび",
+    "translation": "Воскресенье"
+   },
+   {
+    "word": "今日",
+    "reading": "きょう",
+    "translation": "Сегодня"
+   },
+   {
+    "word": "明日",
+    "reading": "あした",
+    "translation": "Завтра"
+   },
+   {
+    "word": "昨日",
+    "reading": "きのう",
+    "translation": "Вчера"
+   }
+  ]
+ },
+ {
+  "num": 48,
+  "kanji": "曜",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "曜日",
+    "reading": "ようび",
+    "translation": "День недели"
+   }
+  ]
+ },
+ {
+  "num": 49,
+  "kanji": "毎",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "毎日",
+    "reading": "まいにち",
+    "translation": "Каждый день"
+   },
+   {
+    "word": "毎週",
+    "reading": "まいしゅう",
+    "translation": "Каждая неделя"
+   },
+   {
+    "word": "毎朝",
+    "reading": "まいあさ",
+    "translation": "Каждое утро"
+   }
+  ]
+ },
+ {
+  "num": 50,
+  "kanji": "週",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "週末",
+    "reading": "しゅうまつ",
+    "translation": "Конец недели"
+   },
+   {
+    "word": "今週",
+    "reading": "こんしゅう",
+    "translation": "Эта неделя"
+   },
+   {
+    "word": "来週",
+    "reading": "らいしゅう",
+    "translation": "Следующая неделя"
+   }
+  ]
+ },
+ {
+  "num": 51,
+  "kanji": "行",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "行く",
+    "reading": "いく",
+    "translation": "идти"
+   },
+   {
+    "word": "銀行",
+    "reading": "ぎんこう",
+    "translation": "банк"
+   },
+   {
+    "word": "旅行する",
+    "reading": "りょこうする",
+    "translation": "путешествовать"
+   },
+   {
+    "word": "飛行機",
+    "reading": "ひこうき",
+    "translation": "самолет"
+   },
+   {
+    "word": "行",
+    "reading": "ぎょう",
+    "translation": "строка"
+   },
+   {
+    "word": "急行",
+    "reading": "きゅうこう",
+    "translation": "скорый поезд"
+   }
+  ]
+ },
+ {
+  "num": 52,
+  "kanji": "来",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "来る",
+    "reading": "くる",
+    "translation": "приходить"
+   },
+   {
+    "word": "来週",
+    "reading": "らいしゅう",
+    "translation": "следующая неделя"
+   },
+   {
+    "word": "来月",
+    "reading": "らいげつ",
+    "translation": "следующий месяц"
+   },
+   {
+    "word": "来年",
+    "reading": "らいねん",
+    "translation": "следующий год"
+   }
+  ]
+ },
+ {
+  "num": 53,
+  "kanji": "帰",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "帰る",
+    "reading": "かえる",
+    "translation": "возвращаться"
+   },
+   {
+    "word": "帰国",
+    "reading": "きこく",
+    "translation": "возвращение в страну"
+   },
+   {
+    "word": "帰宅",
+    "reading": "きたく",
+    "translation": "возвращение домой"
+   }
+  ]
+ },
+ {
+  "num": 54,
+  "kanji": "始",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "始める",
+    "reading": "はじめる",
+    "translation": "начинать"
+   },
+   {
+    "word": "始まる",
+    "reading": "はじまる",
+    "translation": "начинаться"
+   }
+  ]
+ },
+ {
+  "num": 55,
+  "kanji": "起",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "起きる",
+    "reading": "おきる",
+    "translation": "вставать"
+   },
+   {
+    "word": "起こす",
+    "reading": "おこす",
+    "translation": "будить, поднимать"
+   },
+   {
+    "word": "起床",
+    "reading": "きしょう",
+    "translation": "подъём, вставание"
+   }
+  ]
+ },
+ {
+  "num": 56,
+  "kanji": "寝",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "寝る",
+    "reading": "ねる",
+    "translation": "ложиться спать"
+   },
+   {
+    "word": "寝室",
+    "reading": "しんしつ",
+    "translation": "спальня"
+   }
+  ]
+ },
+ {
+  "num": 58,
+  "kanji": "働",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "働く",
+    "reading": "はたらく",
+    "translation": "работать"
+   },
+   {
+    "word": "労働",
+    "reading": "ろうどう",
+    "translation": "труд"
+   }
+  ]
+ },
+ {
+  "num": 59,
+  "kanji": "勉",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "勉強",
+    "reading": "べんきょう",
+    "translation": "учеба, занятия"
+   },
+   {
+    "word": "勉強する",
+    "reading": "べんきょうする",
+    "translation": "учиться, заниматься"
+   }
+  ]
+ },
+ {
+  "num": 60,
+  "kanji": "強",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "強い",
+    "reading": "つよい",
+    "translation": "сильный"
+   },
+   {
+    "word": "強風",
+    "reading": "きょうふう",
+    "translation": "сильный ветер"
+   },
+   {
+    "word": "勉強する",
+    "reading": "べんきょうする",
+    "translation": "учиться"
+   }
+  ]
+ },
+ {
+  "num": 61,
+  "kanji": "私",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "私",
+    "reading": "わたし",
+    "translation": "я"
+   },
+   {
+    "word": "私",
+    "reading": "わたくし",
+    "translation": "я (вежливо)"
+   }
+  ]
+ },
+ {
+  "num": 62,
+  "kanji": "家",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "家",
+    "reading": "いえ",
+    "translation": "дом"
+   },
+   {
+    "word": "家族",
+    "reading": "かぞく",
+    "translation": "семья"
+   },
+   {
+    "word": "家庭",
+    "reading": "かてい",
+    "translation": "домашнее хозяйство"
+   },
+   {
+    "word": "家内",
+    "reading": "かない",
+    "translation": "жена (моя)"
+   }
+  ]
+ },
+ {
+  "num": 63,
+  "kanji": "族",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "家族",
+    "reading": "かぞく",
+    "translation": "семья"
+   }
+  ]
+ },
+ {
+  "num": 64,
+  "kanji": "父",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "父",
+    "reading": "ちち",
+    "translation": "отец"
+   },
+   {
+    "word": "お父さん",
+    "reading": "おとうさん",
+    "translation": "отец (вежливо)"
+   },
+   {
+    "word": "祖父",
+    "reading": "そふ",
+    "translation": "дедушка"
+   },
+   {
+    "word": "伯父",
+    "reading": "おじ",
+    "translation": "дядя (старший брат одного из родителей)"
+   },
+   {
+    "word": "叔父",
+    "reading": "おじ",
+    "translation": "дядя (младший брат одного из родителей)"
+   }
+  ]
+ },
+ {
+  "num": 65,
+  "kanji": "母",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "母",
+    "reading": "はは",
+    "translation": "мать"
+   },
+   {
+    "word": "お母さん",
+    "reading": "おかあさん",
+    "translation": "мать (вежливо)"
+   },
+   {
+    "word": "祖母",
+    "reading": "そぼ",
+    "translation": "бабушка"
+   },
+   {
+    "word": "伯母",
+    "reading": "おば",
+    "translation": "тетя (старшая сестра одного из родителей)"
+   },
+   {
+    "word": "叔母",
+    "reading": "おば",
+    "translation": "тетя (младшая сестра одного из родителей)"
+   }
+  ]
+ },
+ {
+  "num": 66,
+  "kanji": "兄",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "兄",
+    "reading": "あに",
+    "translation": "старший брат"
+   },
+   {
+    "word": "お兄さん",
+    "reading": "おにいさん",
+    "translation": "старший брат (вежливо)"
+   },
+   {
+    "word": "兄弟",
+    "reading": "きょうだい",
+    "translation": "братья и сестры"
+   }
+  ]
+ },
+ {
+  "num": 67,
+  "kanji": "弟",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "弟",
+    "reading": "おとうと",
+    "translation": "младший брат"
+   },
+   {
+    "word": "兄弟",
+    "reading": "きょうだい",
+    "translation": "братья и сестры"
+   }
+  ]
+ },
+ {
+  "num": 68,
+  "kanji": "姉",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "姉",
+    "reading": "あね",
+    "translation": "старшая сестра"
+   },
+   {
+    "word": "お姉さん",
+    "reading": "おねえさん",
+    "translation": "старшая сестра (вежливо)"
+   }
+  ]
+ },
+ {
+  "num": 69,
+  "kanji": "妹",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "妹",
+    "reading": "いもうと",
+    "translation": "младшая сестра"
+   }
+  ]
+ },
+ {
+  "num": 70,
+  "kanji": "主",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "主人",
+    "reading": "しゅじん",
+    "translation": "муж, хозяин"
+   },
+   {
+    "word": "ご主人",
+    "reading": "ごしゅじん",
+    "translation": "муж (вежливо)"
+   },
+   {
+    "word": "主婦",
+    "reading": "しゅふ",
+    "translation": "домохозяйка"
+   }
+  ]
+ },
+ {
+  "num": 71,
+  "kanji": "内",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "内",
+    "reading": "ない",
+    "translation": "внутри"
+   },
+   {
+    "word": "案内する",
+    "reading": "あんないする",
+    "translation": "сопровождать, показывать дорогу"
+   },
+   {
+    "word": "以内",
+    "reading": "いない",
+    "translation": "в пределах"
+   }
+  ]
+ },
+ {
+  "num": 72,
+  "kanji": "奥",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "奥",
+    "reading": "おく",
+    "translation": "глубь, внутри"
+   },
+   {
+    "word": "奥さん",
+    "reading": "おくさん",
+    "translation": "жена (чья-то)"
+   }
+  ]
+ },
+ {
+  "num": 73,
+  "kanji": "仕",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "仕",
+    "reading": "し",
+    "translation": "служба, работа"
+   },
+   {
+    "word": "仕事",
+    "reading": "しごと",
+    "translation": "работа"
+   },
+   {
+    "word": "仕方",
+    "reading": "しかた",
+    "translation": "способ, метод"
+   }
+  ]
+ },
+ {
+  "num": 74,
+  "kanji": "事",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "事",
+    "reading": "こと",
+    "translation": "дело, событие"
+   },
+   {
+    "word": "仕事",
+    "reading": "しごと",
+    "translation": "работа"
+   },
+   {
+    "word": "大事",
+    "reading": "だいじ",
+    "translation": "важный"
+   }
+  ]
+ },
+ {
+  "num": 75,
+  "kanji": "生",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "生",
+    "reading": "せい",
+    "translation": "жизнь"
+   },
+   {
+    "word": "生徒",
+    "reading": "せいと",
+    "translation": "ученик"
+   },
+   {
+    "word": "誕生日",
+    "reading": "たんじょうび",
+    "translation": "день рождения"
+   },
+   {
+    "word": "生きる",
+    "reading": "いきる",
+    "translation": "жить"
+   },
+   {
+    "word": "生まれる",
+    "reading": "うまれる",
+    "translation": "рождаться"
+   }
+  ]
+ },
+ {
+  "num": 76,
+  "kanji": "先",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "先",
+    "reading": "せん",
+    "translation": "впереди, раньше"
+   },
+   {
+    "word": "先生",
+    "reading": "せんせい",
+    "translation": "учитель"
+   },
+   {
+    "word": "先週",
+    "reading": "せんしゅう",
+    "translation": "прошлая неделя"
+   }
+  ]
+ },
+ {
+  "num": 77,
+  "kanji": "学",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "学",
+    "reading": "がく",
+    "translation": "учёба"
+   },
+   {
+    "word": "学生",
+    "reading": "がくせい",
+    "translation": "студент"
+   },
+   {
+    "word": "学校",
+    "reading": "がっこう",
+    "translation": "школа"
+   },
+   {
+    "word": "大学",
+    "reading": "だいがく",
+    "translation": "университет"
+   }
+  ]
+ },
+ {
+  "num": 78,
+  "kanji": "会",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "会",
+    "reading": "かい",
+    "translation": "собрание, встреча"
+   },
+   {
+    "word": "会社",
+    "reading": "かいしゃ",
+    "translation": "компания"
+   },
+   {
+    "word": "会議",
+    "reading": "かいぎ",
+    "translation": "совещание"
+   },
+   {
+    "word": "会う",
+    "reading": "あう",
+    "translation": "встречаться"
+   }
+  ]
+ },
+ {
+  "num": 79,
+  "kanji": "社",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "社",
+    "reading": "しゃ",
+    "translation": "фирма, компания"
+   },
+   {
+    "word": "会社",
+    "reading": "かいしゃ",
+    "translation": "компания"
+   },
+   {
+    "word": "神社",
+    "reading": "じんじゃ",
+    "translation": "синтоистский храм"
+   }
+  ]
+ },
+ {
+  "num": 80,
+  "kanji": "員",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "員",
+    "reading": "いん",
+    "translation": "член (группы)"
+   },
+   {
+    "word": "会社員",
+    "reading": "かいしゃいん",
+    "translation": "сотрудник компании"
+   },
+   {
+    "word": "店員",
+    "reading": "てんいん",
+    "translation": "продавец"
+   },
+   {
+    "word": "駅員",
+    "reading": "えきいん",
+    "translation": "сотрудник станции"
+   }
+  ]
+ },
+ {
+  "num": 81,
+  "kanji": "時",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "時",
+    "reading": "とき",
+    "translation": "время"
+   },
+   {
+    "word": "時間",
+    "reading": "じかん",
+    "translation": "час, время"
+   },
+   {
+    "word": "時計",
+    "reading": "とけい",
+    "translation": "часы"
+   }
+  ]
+ },
+ {
+  "num": 82,
+  "kanji": "分",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "分かる",
+    "reading": "わかる",
+    "translation": "понимать"
+   },
+   {
+    "word": "～分",
+    "reading": "ふん",
+    "translation": "минута"
+   },
+   {
+    "word": "自分で",
+    "reading": "じぶんで",
+    "translation": "сам, самостоятельно"
+   }
+  ]
+ },
+ {
+  "num": 83,
+  "kanji": "午",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "午",
+    "reading": "ご",
+    "translation": "полдень"
+   },
+   {
+    "word": "午前",
+    "reading": "ごぜん",
+    "translation": "первая половина дня"
+   },
+   {
+    "word": "午後",
+    "reading": "ごご",
+    "translation": "вторая половина дня"
+   }
+  ]
+ },
+ {
+  "num": 84,
+  "kanji": "前",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "前",
+    "reading": "まえ",
+    "translation": "перед, до"
+   },
+   {
+    "word": "午前",
+    "reading": "ごぜん",
+    "translation": "до полудня"
+   },
+   {
+    "word": "名前",
+    "reading": "なまえ",
+    "translation": "имя"
+   }
+  ]
+ },
+ {
+  "num": 85,
+  "kanji": "後",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "後",
+    "reading": "あと",
+    "translation": "после, сзади"
+   },
+   {
+    "word": "午後",
+    "reading": "ごご",
+    "translation": "вторая половина дня"
+   },
+   {
+    "word": "最後",
+    "reading": "さいご",
+    "translation": "последний"
+   }
+  ]
+ },
+ {
+  "num": 86,
+  "kanji": "間",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "間",
+    "reading": "あいだ",
+    "translation": "промежуток, между"
+   },
+   {
+    "word": "時間",
+    "reading": "じかん",
+    "translation": "время, час"
+   },
+   {
+    "word": "この間",
+    "reading": "このあいだ",
+    "translation": "на днях, недавно"
+   }
+  ]
+ },
+ {
+  "num": 87,
+  "kanji": "半",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "半",
+    "reading": "はん",
+    "translation": "половина"
+   },
+   {
+    "word": "半分",
+    "reading": "はんぶん",
+    "translation": "половина"
+   },
+   {
+    "word": "～時半",
+    "reading": "じはん",
+    "translation": "половина (время)"
+   }
+  ]
+ },
+ {
+  "num": 88,
+  "kanji": "朝",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "朝",
+    "reading": "あさ",
+    "translation": "утро"
+   },
+   {
+    "word": "朝ご飯",
+    "reading": "あさごはん",
+    "translation": "завтрак"
+   },
+   {
+    "word": "毎朝",
+    "reading": "まいあさ",
+    "translation": "каждое утро"
+   }
+  ]
+ },
+ {
+  "num": 89,
+  "kanji": "昼",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "昼",
+    "reading": "ひる",
+    "translation": "день, дневное время"
+   },
+   {
+    "word": "昼ご飯",
+    "reading": "ひるごはん",
+    "translation": "обед"
+   },
+   {
+    "word": "昼休み",
+    "reading": "ひるやすみ",
+    "translation": "обеденный перерыв"
+   }
+  ]
+ },
+ {
+  "num": 90,
+  "kanji": "晩",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "晩",
+    "reading": "ばん",
+    "translation": "вечер"
+   },
+   {
+    "word": "晩ご飯",
+    "reading": "ばんごはん",
+    "translation": "ужин"
+   },
+   {
+    "word": "今晩",
+    "reading": "こんばん",
+    "translation": "сегодня вечером"
+   }
+  ]
+ },
+ {
+  "num": 91,
+  "kanji": "今",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "今",
+    "reading": "いま",
+    "translation": "сейчас"
+   },
+   {
+    "word": "今週",
+    "reading": "こんしゅう",
+    "translation": "эта неделя"
+   },
+   {
+    "word": "今晩",
+    "reading": "こんばん",
+    "translation": "сегодня вечером"
+   },
+   {
+    "word": "今年",
+    "reading": "ことし",
+    "translation": "этот год"
+   }
+  ]
+ },
+ {
+  "num": 92,
+  "kanji": "去",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "去",
+    "reading": "きょ",
+    "translation": "прошлый"
+   },
+   {
+    "word": "去年",
+    "reading": "きょねん",
+    "translation": "прошлый год"
+   },
+   {
+    "word": "去る",
+    "reading": "さる",
+    "translation": "уходить, покидать"
+   }
+  ]
+ },
+ {
+  "num": 93,
+  "kanji": "年",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "年",
+    "reading": "とし",
+    "translation": "год"
+   },
+   {
+    "word": "今年",
+    "reading": "ことし",
+    "translation": "этот год"
+   },
+   {
+    "word": "来年",
+    "reading": "らいねん",
+    "translation": "следующий год"
+   },
+   {
+    "word": "毎年",
+    "reading": "まいとし",
+    "translation": "каждый год"
+   }
+  ]
+ },
+ {
+  "num": 94,
+  "kanji": "夕",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "夕",
+    "reading": "ゆう",
+    "translation": "вечер"
+   },
+   {
+    "word": "夕方",
+    "reading": "ゆうがた",
+    "translation": "вечер, закат"
+   },
+   {
+    "word": "夕食",
+    "reading": "ゆうしょく",
+    "translation": "ужин"
+   }
+  ]
+ },
+ {
+  "num": 95,
+  "kanji": "方",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "方",
+    "reading": "かた",
+    "translation": "направление, способ"
+   },
+   {
+    "word": "方法",
+    "reading": "ほうほう",
+    "translation": "метод"
+   },
+   {
+    "word": "夕方",
+    "reading": "ゆうがた",
+    "translation": "вечер"
+   },
+   {
+    "word": "方言",
+    "reading": "ほうげん",
+    "translation": "диалект"
+   }
+  ]
+ },
+ {
+  "num": 96,
+  "kanji": "春",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "春",
+    "reading": "はる",
+    "translation": "весна"
+   },
+   {
+    "word": "春休み",
+    "reading": "はるやすみ",
+    "translation": "весенние каникулы"
+   },
+   {
+    "word": "春風",
+    "reading": "はるかぜ",
+    "translation": "весенний ветер"
+   }
+  ]
+ },
+ {
+  "num": 97,
+  "kanji": "夏",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "夏",
+    "reading": "なつ",
+    "translation": "лето"
+   },
+   {
+    "word": "夏休み",
+    "reading": "なつやすみ",
+    "translation": "летние каникулы"
+   },
+   {
+    "word": "真夏",
+    "reading": "まなつ",
+    "translation": "разгар лета"
+   }
+  ]
+ },
+ {
+  "num": 98,
+  "kanji": "秋",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "秋",
+    "reading": "あき",
+    "translation": "осень"
+   },
+   {
+    "word": "秋風",
+    "reading": "あきかぜ",
+    "translation": "осенний ветер"
+   },
+   {
+    "word": "秋学期",
+    "reading": "あきがっき",
+    "translation": "осенний семестр"
+   }
+  ]
+ },
+ {
+  "num": 99,
+  "kanji": "冬",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "冬",
+    "reading": "ふゆ",
+    "translation": "зима"
+   },
+   {
+    "word": "冬休み",
+    "reading": "ふゆやすみ",
+    "translation": "зимние каникулы"
+   },
+   {
+    "word": "冬風",
+    "reading": "ふゆかぜ",
+    "translation": "зимний ветер"
+   }
+  ]
+ },
+ {
+  "num": 100,
+  "kanji": "夜",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "夜",
+    "reading": "よる",
+    "translation": "ночь"
+   },
+   {
+    "word": "今夜",
+    "reading": "こんや",
+    "translation": "сегодня ночью"
+   },
+   {
+    "word": "夜食",
+    "reading": "やしょく",
+    "translation": "ночной перекус"
+   }
+  ]
+ },
+ {
+  "num": 101,
+  "kanji": "食",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "食べる",
+    "reading": "たべる",
+    "translation": "есть"
+   },
+   {
+    "word": "食堂",
+    "reading": "しょくどう",
+    "translation": "столовая"
+   },
+   {
+    "word": "食品",
+    "reading": "しょくひん",
+    "translation": "продукты питания"
+   },
+   {
+    "word": "食べ物",
+    "reading": "たべもの",
+    "translation": "еда"
+   }
+  ]
+ },
+ {
+  "num": 102,
+  "kanji": "飲",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "飲む",
+    "reading": "のむ",
+    "translation": "пить"
+   },
+   {
+    "word": "飲み物",
+    "reading": "のみもの",
+    "translation": "напиток"
+   }
+  ]
+ },
+ {
+  "num": 103,
+  "kanji": "買",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "買う",
+    "reading": "かう",
+    "translation": "покупать"
+   },
+   {
+    "word": "買い物",
+    "reading": "かいもの",
+    "translation": "покупки"
+   }
+  ]
+ },
+ {
+  "num": 104,
+  "kanji": "見",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "見る",
+    "reading": "みる",
+    "translation": "смотреть"
+   },
+   {
+    "word": "見える",
+    "reading": "みえる",
+    "translation": "быть видимым"
+   },
+   {
+    "word": "見せる",
+    "reading": "みせる",
+    "translation": "показывать"
+   },
+   {
+    "word": "意見",
+    "reading": "いけん",
+    "translation": "мнение"
+   }
+  ]
+ },
+ {
+  "num": 105,
+  "kanji": "聞",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "聞く",
+    "reading": "きく",
+    "translation": "слушать"
+   },
+   {
+    "word": "聞こえる",
+    "reading": "きこえる",
+    "translation": "быть слышным"
+   },
+   {
+    "word": "新聞",
+    "reading": "しんぶん",
+    "translation": "газета"
+   },
+   {
+    "word": "新聞社",
+    "reading": "しんぶんしゃ",
+    "translation": "газетное агентство"
+   }
+  ]
+ },
+ {
+  "num": 106,
+  "kanji": "何",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "何",
+    "reading": "なに",
+    "translation": "что"
+   },
+   {
+    "word": "何時",
+    "reading": "なんじ",
+    "translation": "который час"
+   },
+   {
+    "word": "何曜日",
+    "reading": "なんようび",
+    "translation": "какой день недели"
+   }
+  ]
+ },
+ {
+  "num": 107,
+  "kanji": "茶",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "茶",
+    "reading": "ちゃ",
+    "translation": "чай"
+   },
+   {
+    "word": "紅茶",
+    "reading": "こうちゃ",
+    "translation": "черный чай"
+   },
+   {
+    "word": "喫茶店",
+    "reading": "きっさてん",
+    "translation": "кафе"
+   }
+  ]
+ },
+ {
+  "num": 108,
+  "kanji": "酒",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "お酒",
+    "reading": "おさけ",
+    "translation": "алкоголь"
+   },
+   {
+    "word": "日本酒",
+    "reading": "にほんしゅ",
+    "translation": "японское саке"
+   }
+  ]
+ },
+ {
+  "num": 109,
+  "kanji": "肉",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "肉",
+    "reading": "にく",
+    "translation": "мясо"
+   },
+   {
+    "word": "牛肉",
+    "reading": "ぎゅうにく",
+    "translation": "говядина"
+   },
+   {
+    "word": "豚肉",
+    "reading": "ぶたにく",
+    "translation": "свинина"
+   },
+   {
+    "word": "鶏肉",
+    "reading": "とりにく",
+    "translation": "курица"
+   }
+  ]
+ },
+ {
+  "num": 110,
+  "kanji": "牛",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "牛",
+    "reading": "うし",
+    "translation": "корова"
+   },
+   {
+    "word": "牛肉",
+    "reading": "ぎゅうにく",
+    "translation": "говядина"
+   },
+   {
+    "word": "牛乳",
+    "reading": "ぎゅうにゅう",
+    "translation": "молоко"
+   }
+  ]
+ },
+ {
+  "num": 111,
+  "kanji": "魚",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "魚",
+    "reading": "さかな",
+    "translation": "рыба"
+   },
+   {
+    "word": "金魚",
+    "reading": "きんぎょ",
+    "translation": "золотая рыбка"
+   }
+  ]
+ },
+ {
+  "num": 112,
+  "kanji": "鳥",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "鳥",
+    "reading": "とり",
+    "translation": "птица"
+   },
+   {
+    "word": "小鳥",
+    "reading": "ことり",
+    "translation": "маленькая птичка"
+   }
+  ]
+ },
+ {
+  "num": 113,
+  "kanji": "犬",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "犬",
+    "reading": "いぬ",
+    "translation": "собака"
+   },
+   {
+    "word": "子犬",
+    "reading": "こいぬ",
+    "translation": "щенок"
+   }
+  ]
+ },
+ {
+  "num": 114,
+  "kanji": "音",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "音",
+    "reading": "おと",
+    "translation": "звук"
+   },
+   {
+    "word": "音楽",
+    "reading": "おんがく",
+    "translation": "музыка"
+   },
+   {
+    "word": "発音",
+    "reading": "はつおん",
+    "translation": "произношение"
+   }
+  ]
+ },
+ {
+  "num": 115,
+  "kanji": "楽",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "楽しい",
+    "reading": "たのしい",
+    "translation": "весёлый"
+   },
+   {
+    "word": "楽しむ",
+    "reading": "たのしむ",
+    "translation": "наслаждаться"
+   },
+   {
+    "word": "音楽",
+    "reading": "おんがく",
+    "translation": "музыка"
+   }
+  ]
+ },
+ {
+  "num": 116,
+  "kanji": "花",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "花",
+    "reading": "はな",
+    "translation": "цветок"
+   },
+   {
+    "word": "花火",
+    "reading": "はなび",
+    "translation": "фейерверк"
+   },
+   {
+    "word": "花屋",
+    "reading": "はなや",
+    "translation": "цветочный магазин"
+   }
+  ]
+ },
+ {
+  "num": 117,
+  "kanji": "映",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "映画",
+    "reading": "えいが",
+    "translation": "кино"
+   },
+   {
+    "word": "映る",
+    "reading": "うつる",
+    "translation": "отражаться"
+   }
+  ]
+ },
+ {
+  "num": 118,
+  "kanji": "画",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "画",
+    "reading": "が",
+    "translation": "картина, план"
+   },
+   {
+    "word": "映画",
+    "reading": "えいが",
+    "translation": "кино"
+   },
+   {
+    "word": "漫画",
+    "reading": "まんが",
+    "translation": "манга"
+   }
+  ]
+ },
+ {
+  "num": 119,
+  "kanji": "写",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "写す",
+    "reading": "うつす",
+    "translation": "копировать, фотографировать"
+   },
+   {
+    "word": "写真",
+    "reading": "しゃしん",
+    "translation": "фотография"
+   }
+  ]
+ },
+ {
+  "num": 120,
+  "kanji": "真",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "真",
+    "reading": "ま",
+    "translation": "правда, истина"
+   },
+   {
+    "word": "真っすぐ",
+    "reading": "まっすぐ",
+    "translation": "прямо"
+   },
+   {
+    "word": "真ん中",
+    "reading": "まんなか",
+    "translation": "центр"
+   }
+  ]
+ },
+ {
+  "num": 121,
+  "kanji": "立",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "立つ",
+    "reading": "たつ",
+    "translation": "вставать"
+   },
+   {
+    "word": "立てる",
+    "reading": "たてる",
+    "translation": "ставить"
+   }
+  ]
+ },
+ {
+  "num": 122,
+  "kanji": "座",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "座る",
+    "reading": "すわる",
+    "translation": "сидеть"
+   }
+  ]
+ },
+ {
+  "num": 123,
+  "kanji": "答",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "答え",
+    "reading": "こたえ",
+    "translation": "ответ"
+   },
+   {
+    "word": "答える",
+    "reading": "こたえる",
+    "translation": "отвечать"
+   }
+  ]
+ },
+ {
+  "num": 124,
+  "kanji": "読",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "読む",
+    "reading": "よむ",
+    "translation": "читать"
+   },
+   {
+    "word": "読書",
+    "reading": "どくしょ",
+    "translation": "чтение"
+   },
+   {
+    "word": "音読",
+    "reading": "おんどく",
+    "translation": "чтение вслух"
+   },
+   {
+    "word": "訓読",
+    "reading": "くんどく",
+    "translation": "кунъёми (японское чтение кандзи)"
+   }
+  ]
+ },
+ {
+  "num": 125,
+  "kanji": "書",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "書く",
+    "reading": "かく",
+    "translation": "писать"
+   },
+   {
+    "word": "図書館",
+    "reading": "としょかん",
+    "translation": "библиотека"
+   },
+   {
+    "word": "辞書",
+    "reading": "じしょ",
+    "translation": "словарь"
+   }
+  ]
+ },
+ {
+  "num": 126,
+  "kanji": "待",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "待つ",
+    "reading": "まつ",
+    "translation": "ждать"
+   },
+   {
+    "word": "招待する",
+    "reading": "しょうたいする",
+    "translation": "приглашать"
+   }
+  ]
+ },
+ {
+  "num": 127,
+  "kanji": "度",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "一度",
+    "reading": "いちど",
+    "translation": "один раз"
+   },
+   {
+    "word": "今度",
+    "reading": "こんど",
+    "translation": "следующий раз"
+   }
+  ]
+ },
+ {
+  "num": 128,
+  "kanji": "話",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "話す",
+    "reading": "はなす",
+    "translation": "говорить"
+   },
+   {
+    "word": "会話",
+    "reading": "かいわ",
+    "translation": "разговор"
+   },
+   {
+    "word": "電話",
+    "reading": "でんわ",
+    "translation": "телефон"
+   }
+  ]
+ },
+ {
+  "num": 129,
+  "kanji": "語",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "日本語",
+    "reading": "にほんご",
+    "translation": "японский язык"
+   },
+   {
+    "word": "英語",
+    "reading": "えいご",
+    "translation": "английский язык"
+   },
+   {
+    "word": "フランス語",
+    "reading": "フランスご",
+    "translation": "французский язык"
+   }
+  ]
+ },
+ {
+  "num": 130,
+  "kanji": "英",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "英語",
+    "reading": "えいご",
+    "translation": "английский язык"
+   }
+  ]
+ },
+ {
+  "num": 131,
+  "kanji": "教",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "教",
+    "reading": "きょう",
+    "translation": "учить"
+   },
+   {
+    "word": "教室",
+    "reading": "きょうしつ",
+    "translation": "классная комната"
+   },
+   {
+    "word": "教える",
+    "reading": "おしえる",
+    "translation": "преподавать, обучать"
+   },
+   {
+    "word": "教育",
+    "reading": "きょういく",
+    "translation": "образование"
+   }
+  ]
+ },
+ {
+  "num": 132,
+  "kanji": "習",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "習",
+    "reading": "しゅう",
+    "translation": "учить"
+   },
+   {
+    "word": "練習する",
+    "reading": "れんしゅうする",
+    "translation": "тренироваться, упражняться"
+   },
+   {
+    "word": "復習する",
+    "reading": "ふくしゅうする",
+    "translation": "повторять"
+   },
+   {
+    "word": "習う",
+    "reading": "ならう",
+    "translation": "учить, изучать"
+   }
+  ]
+ },
+ {
+  "num": 133,
+  "kanji": "貸",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "貸",
+    "reading": "かす",
+    "translation": "давать взаймы"
+   },
+   {
+    "word": "貸す",
+    "reading": "かす",
+    "translation": "одалживать, сдавать в аренду"
+   },
+   {
+    "word": "貸家",
+    "reading": "かしや",
+    "translation": "сдаваемый дом"
+   }
+  ]
+ },
+ {
+  "num": 134,
+  "kanji": "借",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "借",
+    "reading": "かりる",
+    "translation": "брать взаймы"
+   },
+   {
+    "word": "借りる",
+    "reading": "かりる",
+    "translation": "занимать, брать в долг"
+   },
+   {
+    "word": "借金",
+    "reading": "しゃっきん",
+    "translation": "долг, заём"
+   }
+  ]
+ },
+ {
+  "num": 135,
+  "kanji": "送",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "送",
+    "reading": "そう",
+    "translation": "отправлять"
+   },
+   {
+    "word": "放送",
+    "reading": "ほうそう",
+    "translation": "передача, вещание"
+   },
+   {
+    "word": "送る",
+    "reading": "おくる",
+    "translation": "отправлять, посылать"
+   }
+  ]
+ },
+ {
+  "num": 136,
+  "kanji": "本",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "本",
+    "reading": "ほん",
+    "translation": "книга"
+   },
+   {
+    "word": "日本",
+    "reading": "にほん",
+    "translation": "Япония"
+   },
+   {
+    "word": "~本",
+    "reading": "~ほん",
+    "translation": "счетный суффикс для длинных предметов"
+   }
+  ]
+ },
+ {
+  "num": 137,
+  "kanji": "漢",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "漢",
+    "reading": "かん",
+    "translation": "китайский"
+   },
+   {
+    "word": "漢字",
+    "reading": "かんじ",
+    "translation": "кандзи (китайские иероглифы)"
+   }
+  ]
+ },
+ {
+  "num": 138,
+  "kanji": "字",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "字",
+    "reading": "じ",
+    "translation": "буква, символ"
+   },
+   {
+    "word": "文字",
+    "reading": "もじ",
+    "translation": "буква, символ"
+   },
+   {
+    "word": "漢字",
+    "reading": "かんじ",
+    "translation": "китайский иероглиф"
+   }
+  ]
+ },
+ {
+  "num": 139,
+  "kanji": "発",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "発",
+    "reading": "はつ",
+    "translation": "отправлять, выпускать"
+   },
+   {
+    "word": "発音",
+    "reading": "はつおん",
+    "translation": "произношение"
+   }
+  ]
+ },
+ {
+  "num": 140,
+  "kanji": "友",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "友",
+    "reading": "とも",
+    "translation": "друг"
+   },
+   {
+    "word": "友達",
+    "reading": "ともだち",
+    "translation": "друг"
+   }
+  ]
+ },
+ {
+  "num": 141,
+  "kanji": "大",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "大",
+    "reading": "おお(きい)",
+    "translation": "большой"
+   },
+   {
+    "word": "大学",
+    "reading": "だいがく",
+    "translation": "университет"
+   },
+   {
+    "word": "大人",
+    "reading": "おとな",
+    "translation": "взрослый"
+   },
+   {
+    "word": "大切な",
+    "reading": "たいせつな",
+    "translation": "важный"
+   }
+  ]
+ },
+ {
+  "num": 142,
+  "kanji": "小",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "小",
+    "reading": "ちい(さい)",
+    "translation": "маленький"
+   },
+   {
+    "word": "小学校",
+    "reading": "しょうがっこう",
+    "translation": "начальная школа"
+   },
+   {
+    "word": "小説",
+    "reading": "しょうせつ",
+    "translation": "роман"
+   },
+   {
+    "word": "小鳥",
+    "reading": "ことり",
+    "translation": "маленькая птичка"
+   }
+  ]
+ },
+ {
+  "num": 143,
+  "kanji": "高",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "高",
+    "reading": "たか(い)",
+    "translation": "высокий"
+   },
+   {
+    "word": "高校",
+    "reading": "こうこう",
+    "translation": "старшая школа"
+   },
+   {
+    "word": "高校生",
+    "reading": "こうこうせい",
+    "translation": "старшеклассник"
+   },
+   {
+    "word": "高い",
+    "reading": "たかい",
+    "translation": "дорогой, высокий"
+   }
+  ]
+ },
+ {
+  "num": 144,
+  "kanji": "低",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "低",
+    "reading": "ひく(い)",
+    "translation": "низкий"
+   },
+   {
+    "word": "低い",
+    "reading": "ひくい",
+    "translation": "низкий"
+   }
+  ]
+ },
+ {
+  "num": 145,
+  "kanji": "安",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "安",
+    "reading": "やす(い)",
+    "translation": "дешевый"
+   },
+   {
+    "word": "安全な",
+    "reading": "あんぜんな",
+    "translation": "безопасный"
+   },
+   {
+    "word": "安心する",
+    "reading": "あんしんする",
+    "translation": "быть спокойным"
+   },
+   {
+    "word": "安い",
+    "reading": "やすい",
+    "translation": "дешевый"
+   }
+  ]
+ },
+ {
+  "num": 146,
+  "kanji": "新",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "新",
+    "reading": "あたら(しい)",
+    "translation": "новый"
+   },
+   {
+    "word": "新聞",
+    "reading": "しんぶん",
+    "translation": "газета"
+   },
+   {
+    "word": "新しい",
+    "reading": "あたらしい",
+    "translation": "новый"
+   }
+  ]
+ },
+ {
+  "num": 147,
+  "kanji": "古",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "古",
+    "reading": "ふる(い)",
+    "translation": "старый"
+   },
+   {
+    "word": "古い",
+    "reading": "ふるい",
+    "translation": "старый"
+   }
+  ]
+ },
+ {
+  "num": 148,
+  "kanji": "多",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "多",
+    "reading": "おお(い)",
+    "translation": "много"
+   },
+   {
+    "word": "多い",
+    "reading": "おおい",
+    "translation": "много"
+   }
+  ]
+ },
+ {
+  "num": 149,
+  "kanji": "少",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "少",
+    "reading": "すこ(し)",
+    "translation": "мало"
+   },
+   {
+    "word": "少し",
+    "reading": "すこし",
+    "translation": "немного"
+   },
+   {
+    "word": "少ない",
+    "reading": "すくない",
+    "translation": "мало"
+   }
+  ]
+ },
+ {
+  "num": 150,
+  "kanji": "正",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "正",
+    "reading": "ただ(しい)",
+    "translation": "правильный"
+   },
+   {
+    "word": "正しい",
+    "reading": "ただしい",
+    "translation": "правильный"
+   },
+   {
+    "word": "正月",
+    "reading": "しょうがつ",
+    "translation": "Новый год"
+   }
+  ]
+ },
+ {
+  "num": 151,
+  "kanji": "長",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "長",
+    "reading": "ちょう",
+    "translation": "долгий, главный"
+   },
+   {
+    "word": "校長",
+    "reading": "こうちょう",
+    "translation": "директор школы"
+   },
+   {
+    "word": "社長",
+    "reading": "しゃちょう",
+    "translation": "директор компании"
+   },
+   {
+    "word": "長い",
+    "reading": "ながい",
+    "translation": "длинный"
+   }
+  ]
+ },
+ {
+  "num": 152,
+  "kanji": "短",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "短",
+    "reading": "たん",
+    "translation": "короткий"
+   },
+   {
+    "word": "短い",
+    "reading": "みじかい",
+    "translation": "короткий"
+   }
+  ]
+ },
+ {
+  "num": 153,
+  "kanji": "軽",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "軽",
+    "reading": "けい",
+    "translation": "лёгкий"
+   },
+   {
+    "word": "軽い",
+    "reading": "かるい",
+    "translation": "лёгкий"
+   }
+  ]
+ },
+ {
+  "num": 154,
+  "kanji": "重",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "重",
+    "reading": "じゅう",
+    "translation": "тяжёлый"
+   },
+   {
+    "word": "重い",
+    "reading": "おもい",
+    "translation": "тяжёлый"
+   }
+  ]
+ },
+ {
+  "num": 155,
+  "kanji": "弱",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "弱",
+    "reading": "じゃく",
+    "translation": "слабый"
+   },
+   {
+    "word": "弱い",
+    "reading": "よわい",
+    "translation": "слабый"
+   }
+  ]
+ },
+ {
+  "num": 156,
+  "kanji": "暑",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "暑",
+    "reading": "しょ",
+    "translation": "жаркий"
+   },
+   {
+    "word": "暑い",
+    "reading": "あつい",
+    "translation": "жаркий"
+   }
+  ]
+ },
+ {
+  "num": 157,
+  "kanji": "寒",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "寒",
+    "reading": "かん",
+    "translation": "холодный"
+   },
+   {
+    "word": "寒い",
+    "reading": "さむい",
+    "translation": "холодный"
+   }
+  ]
+ },
+ {
+  "num": 158,
+  "kanji": "暗",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "暗",
+    "reading": "あん",
+    "translation": "тёмный"
+   },
+   {
+    "word": "暗い",
+    "reading": "くらい",
+    "translation": "тёмный"
+   }
+  ]
+ },
+ {
+  "num": 159,
+  "kanji": "早",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "早",
+    "reading": "そう",
+    "translation": "ранний"
+   },
+   {
+    "word": "早い",
+    "reading": "はやい",
+    "translation": "ранний"
+   }
+  ]
+ },
+ {
+  "num": 160,
+  "kanji": "悪",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "悪",
+    "reading": "あく",
+    "translation": "плохой"
+   },
+   {
+    "word": "悪い",
+    "reading": "わるい",
+    "translation": "плохой"
+   }
+  ]
+ },
+ {
+  "num": 161,
+  "kanji": "元",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "元",
+    "reading": "げん",
+    "translation": "источник, основа"
+   },
+   {
+    "word": "元気",
+    "reading": "げんき",
+    "translation": "бодрость, здоровье"
+   },
+   {
+    "word": "元日",
+    "reading": "がんじつ",
+    "translation": "Новый Год"
+   }
+  ]
+ },
+ {
+  "num": 162,
+  "kanji": "気",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "気",
+    "reading": "き",
+    "translation": "дух, настроение"
+   },
+   {
+    "word": "元気",
+    "reading": "げんき",
+    "translation": "бодрость, здоровье"
+   },
+   {
+    "word": "気持ち",
+    "reading": "きもち",
+    "translation": "чувства"
+   },
+   {
+    "word": "天気",
+    "reading": "てんき",
+    "translation": "погода"
+   }
+  ]
+ },
+ {
+  "num": 163,
+  "kanji": "有",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "有",
+    "reading": "ゆう",
+    "translation": "существование"
+   },
+   {
+    "word": "有名な",
+    "reading": "ゆうめいな",
+    "translation": "знаменитый, известный"
+   },
+   {
+    "word": "所有する",
+    "reading": "しょゆうする",
+    "translation": "владеть"
+   }
+  ]
+ },
+ {
+  "num": 164,
+  "kanji": "名",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "名",
+    "reading": "めい",
+    "translation": "имя, название"
+   },
+   {
+    "word": "有名な",
+    "reading": "ゆうめいな",
+    "translation": "знаменитый"
+   },
+   {
+    "word": "名前",
+    "reading": "なまえ",
+    "translation": "имя"
+   }
+  ]
+ },
+ {
+  "num": 165,
+  "kanji": "同",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "同",
+    "reading": "おなじ",
+    "translation": "одинаковый, такой же"
+   },
+   {
+    "word": "同時",
+    "reading": "どうじ",
+    "translation": "одновременно"
+   },
+   {
+    "word": "同意",
+    "reading": "どうい",
+    "translation": "согласие, единодушие"
+   }
+  ]
+ },
+ {
+  "num": 166,
+  "kanji": "親",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "親",
+    "reading": "しん",
+    "translation": "родитель"
+   },
+   {
+    "word": "親切な",
+    "reading": "しんせつな",
+    "translation": "добрый, любезный"
+   },
+   {
+    "word": "親友",
+    "reading": "しんゆう",
+    "translation": "близкий друг"
+   }
+  ]
+ },
+ {
+  "num": 167,
+  "kanji": "切",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "切",
+    "reading": "せつ",
+    "translation": "резать"
+   },
+   {
+    "word": "切手",
+    "reading": "きって",
+    "translation": "почтовая марка"
+   },
+   {
+    "word": "親切",
+    "reading": "しんせつ",
+    "translation": "добрый"
+   }
+  ]
+ },
+ {
+  "num": 168,
+  "kanji": "便",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "便",
+    "reading": "べん",
+    "translation": "удобство"
+   },
+   {
+    "word": "便利",
+    "reading": "べんり",
+    "translation": "удобный"
+   },
+   {
+    "word": "郵便局",
+    "reading": "ゆうびんきょく",
+    "translation": "почта"
+   }
+  ]
+ },
+ {
+  "num": 169,
+  "kanji": "利",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "利",
+    "reading": "り",
+    "translation": "выгода"
+   },
+   {
+    "word": "便利",
+    "reading": "べんり",
+    "translation": "удобный"
+   },
+   {
+    "word": "利用する",
+    "reading": "りようする",
+    "translation": "использовать"
+   }
+  ]
+ },
+ {
+  "num": 170,
+  "kanji": "不",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "不",
+    "reading": "ふ",
+    "translation": "не-, отрицание"
+   },
+   {
+    "word": "不便な",
+    "reading": "ふべんな",
+    "translation": "неудобный"
+   },
+   {
+    "word": "不安",
+    "reading": "ふあん",
+    "translation": "беспокойство, тревога"
+   }
+  ]
+ },
+ {
+  "num": 171,
+  "kanji": "研",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "研",
+    "reading": "けん",
+    "translation": "точить, исследовать"
+   },
+   {
+    "word": "研究",
+    "reading": "けんきゅう",
+    "translation": "исследование"
+   },
+   {
+    "word": "研究者",
+    "reading": "けんきゅうしゃ",
+    "translation": "исследователь"
+   },
+   {
+    "word": "研修",
+    "reading": "けんしゅう",
+    "translation": "стажировка"
+   }
+  ]
+ },
+ {
+  "num": 172,
+  "kanji": "究",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "究",
+    "reading": "きゅう",
+    "translation": "осваивать, изучать до конца"
+   },
+   {
+    "word": "研究",
+    "reading": "けんきゅう",
+    "translation": "исследование"
+   },
+   {
+    "word": "究極",
+    "reading": "きゅうきょく",
+    "translation": "окончательный, конечный"
+   }
+  ]
+ },
+ {
+  "num": 173,
+  "kanji": "質",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "質",
+    "reading": "しつ",
+    "translation": "качество, сущность"
+   },
+   {
+    "word": "質問",
+    "reading": "しつもん",
+    "translation": "вопрос"
+   },
+   {
+    "word": "品質",
+    "reading": "ひんしつ",
+    "translation": "качество товара"
+   },
+   {
+    "word": "質屋",
+    "reading": "しちや",
+    "translation": "ломбард"
+   }
+  ]
+ },
+ {
+  "num": 174,
+  "kanji": "問",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "問",
+    "reading": "もん",
+    "translation": "вопрос"
+   },
+   {
+    "word": "質問",
+    "reading": "しつもん",
+    "translation": "вопрос"
+   },
+   {
+    "word": "問題",
+    "reading": "もんだい",
+    "translation": "проблема, задача"
+   },
+   {
+    "word": "訪問",
+    "reading": "ほうもん",
+    "translation": "визит"
+   }
+  ]
+ },
+ {
+  "num": 175,
+  "kanji": "文",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "文",
+    "reading": "ぶん",
+    "translation": "текст, литература"
+   },
+   {
+    "word": "文章",
+    "reading": "ぶんしょう",
+    "translation": "предложение, текст"
+   },
+   {
+    "word": "文学",
+    "reading": "ぶんがく",
+    "translation": "литература"
+   },
+   {
+    "word": "文化",
+    "reading": "ぶんか",
+    "translation": "культура"
+   },
+   {
+    "word": "作文",
+    "reading": "さくぶん",
+    "translation": "сочинение"
+   }
+  ]
+ },
+ {
+  "num": 176,
+  "kanji": "洗",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "洗",
+    "reading": "せん",
+    "translation": "мыть"
+   },
+   {
+    "word": "洗う",
+    "reading": "あらう",
+    "translation": "мыть"
+   },
+   {
+    "word": "洗濯",
+    "reading": "せんたく",
+    "translation": "стирка"
+   },
+   {
+    "word": "洗面所",
+    "reading": "せんめんじょ",
+    "translation": "умывальная комната"
+   }
+  ]
+ },
+ {
+  "num": 177,
+  "kanji": "濯",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "濯",
+    "reading": "たく",
+    "translation": "полоскать"
+   },
+   {
+    "word": "洗濯",
+    "reading": "せんたく",
+    "translation": "стирка"
+   }
+  ]
+ },
+ {
+  "num": 178,
+  "kanji": "注",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "注",
+    "reading": "ちゅう",
+    "translation": "лить, сосредоточивать"
+   },
+   {
+    "word": "注意する",
+    "reading": "ちゅういする",
+    "translation": "быть внимательным"
+   },
+   {
+    "word": "注文する",
+    "reading": "ちゅうもんする",
+    "translation": "заказывать"
+   },
+   {
+    "word": "注目",
+    "reading": "ちゅうもく",
+    "translation": "внимание"
+   }
+  ]
+ },
+ {
+  "num": 179,
+  "kanji": "意",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "意",
+    "reading": "い",
+    "translation": "мысль, чувство"
+   },
+   {
+    "word": "意味",
+    "reading": "いみ",
+    "translation": "значение"
+   },
+   {
+    "word": "意見",
+    "reading": "いけん",
+    "translation": "мнение"
+   },
+   {
+    "word": "意志",
+    "reading": "いし",
+    "translation": "воля"
+   },
+   {
+    "word": "注意",
+    "reading": "ちゅうい",
+    "translation": "внимание"
+   }
+  ]
+ },
+ {
+  "num": 180,
+  "kanji": "旅",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "旅",
+    "reading": "りょ",
+    "translation": "путешествие"
+   },
+   {
+    "word": "旅行",
+    "reading": "りょこう",
+    "translation": "путешествие"
+   },
+   {
+    "word": "旅館",
+    "reading": "りょかん",
+    "translation": "японская гостиница"
+   },
+   {
+    "word": "旅人",
+    "reading": "たびびと",
+    "translation": "путешественник"
+   }
+  ]
+ },
+ {
+  "num": 181,
+  "kanji": "言",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "言う",
+    "reading": "いう",
+    "translation": "сказать"
+   },
+   {
+    "word": "言葉",
+    "reading": "ことば",
+    "translation": "слово, язык"
+   }
+  ]
+ },
+ {
+  "num": 182,
+  "kanji": "計",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "時計",
+    "reading": "とけい",
+    "translation": "часы"
+   },
+   {
+    "word": "計画する",
+    "reading": "けいかくする",
+    "translation": "планировать"
+   }
+  ]
+ },
+ {
+  "num": 183,
+  "kanji": "池",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "池",
+    "reading": "いけ",
+    "translation": "пруд"
+   }
+  ]
+ },
+ {
+  "num": 184,
+  "kanji": "洋",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "洋服",
+    "reading": "ようふく",
+    "translation": "западная одежда"
+   },
+   {
+    "word": "洋室",
+    "reading": "ようしつ",
+    "translation": "комната в западном стиле"
+   }
+  ]
+ },
+ {
+  "num": 185,
+  "kanji": "和",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "和室",
+    "reading": "わしつ",
+    "translation": "комната в японском стиле"
+   },
+   {
+    "word": "平和",
+    "reading": "へいわ",
+    "translation": "мир"
+   }
+  ]
+ },
+ {
+  "num": 186,
+  "kanji": "代",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "時代",
+    "reading": "じだい",
+    "translation": "эпоха, эра"
+   },
+   {
+    "word": "代わりに",
+    "reading": "かわりに",
+    "translation": "вместо"
+   }
+  ]
+ },
+ {
+  "num": 187,
+  "kanji": "持",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "持つ",
+    "reading": "もつ",
+    "translation": "иметь, держать"
+   },
+   {
+    "word": "気持ち",
+    "reading": "きもち",
+    "translation": "чувство, настроение"
+   },
+   {
+    "word": "持って来る",
+    "reading": "もってくる",
+    "translation": "принести"
+   }
+  ]
+ },
+ {
+  "num": 188,
+  "kanji": "押",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "押す",
+    "reading": "おす",
+    "translation": "нажимать, толкать"
+   }
+  ]
+ },
+ {
+  "num": 189,
+  "kanji": "引",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "引く",
+    "reading": "ひく",
+    "translation": "тянуть, тащить"
+   },
+   {
+    "word": "引き出し",
+    "reading": "ひきだし",
+    "translation": "ящик (в шкафу)"
+   },
+   {
+    "word": "引っ越す",
+    "reading": "ひっこす",
+    "translation": "переезжать"
+   }
+  ]
+ },
+ {
+  "num": 190,
+  "kanji": "紙",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "紙",
+    "reading": "かみ",
+    "translation": "бумага"
+   },
+   {
+    "word": "手紙",
+    "reading": "てがみ",
+    "translation": "письмо"
+   }
+  ]
+ },
+ {
+  "num": 191,
+  "kanji": "服",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "服",
+    "reading": "ふく",
+    "translation": "одежда"
+   },
+   {
+    "word": "洋服",
+    "reading": "ようふく",
+    "translation": "западная одежда"
+   }
+  ]
+ },
+ {
+  "num": 192,
+  "kanji": "取",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "取る",
+    "reading": "とる",
+    "translation": "брать"
+   }
+  ]
+ },
+ {
+  "num": 193,
+  "kanji": "歌",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "歌",
+    "reading": "うた",
+    "translation": "песня"
+   },
+   {
+    "word": "歌う",
+    "reading": "うたう",
+    "translation": "петь"
+   }
+  ]
+ },
+ {
+  "num": 194,
+  "kanji": "特",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "特別な",
+    "reading": "とくべつな",
+    "translation": "особенный"
+   },
+   {
+    "word": "特急",
+    "reading": "とっきゅう",
+    "translation": "скорый поезд"
+   }
+  ]
+ },
+ {
+  "num": 195,
+  "kanji": "別",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "別れる",
+    "reading": "わかれる",
+    "translation": "расставаться"
+   },
+   {
+    "word": "別の",
+    "reading": "べつの",
+    "translation": "другой"
+   },
+   {
+    "word": "特別な",
+    "reading": "とくべつな",
+    "translation": "особенный"
+   }
+  ]
+ },
+ {
+  "num": 196,
+  "kanji": "集",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "集まる",
+    "reading": "あつまる",
+    "translation": "собираться"
+   },
+   {
+    "word": "集める",
+    "reading": "あつめる",
+    "translation": "собирать"
+   }
+  ]
+ },
+ {
+  "num": 197,
+  "kanji": "売",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "売る",
+    "reading": "うる",
+    "translation": "продавать"
+   },
+   {
+    "word": "売り場",
+    "reading": "うりば",
+    "translation": "прилавок"
+   }
+  ]
+ },
+ {
+  "num": 198,
+  "kanji": "門",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "門",
+    "reading": "もん",
+    "translation": "ворота"
+   },
+   {
+    "word": "専門",
+    "reading": "せんもん",
+    "translation": "специальность"
+   }
+  ]
+ },
+ {
+  "num": 199,
+  "kanji": "開",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "開く",
+    "reading": "あく",
+    "translation": "открываться"
+   },
+   {
+    "word": "開ける",
+    "reading": "あける",
+    "translation": "открывать"
+   },
+   {
+    "word": "開く",
+    "reading": "ひらく",
+    "translation": "открывать"
+   }
+  ]
+ },
+ {
+  "num": 200,
+  "kanji": "閉",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "閉まる",
+    "reading": "しまる",
+    "translation": "закрываться"
+   },
+   {
+    "word": "閉める",
+    "reading": "しめる",
+    "translation": "закрывать"
+   }
+  ]
+ },
+ {
+  "num": 201,
+  "kanji": "駅",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "駅",
+    "reading": "えき",
+    "translation": "станция"
+   },
+   {
+    "word": "駅員",
+    "reading": "えきいん",
+    "translation": "служащий станции"
+   }
+  ]
+ },
+ {
+  "num": 202,
+  "kanji": "銀",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "銀",
+    "reading": "ぎん",
+    "translation": "серебро"
+   },
+   {
+    "word": "銀行",
+    "reading": "ぎんこう",
+    "translation": "банк"
+   }
+  ]
+ },
+ {
+  "num": 203,
+  "kanji": "病",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "病",
+    "reading": "びょう",
+    "translation": "болезнь"
+   },
+   {
+    "word": "病気",
+    "reading": "びょうき",
+    "translation": "болезнь"
+   },
+   {
+    "word": "病院",
+    "reading": "びょういん",
+    "translation": "больница"
+   }
+  ]
+ },
+ {
+  "num": 204,
+  "kanji": "院",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "院",
+    "reading": "いん",
+    "translation": "институт, здание"
+   },
+   {
+    "word": "病院",
+    "reading": "びょういん",
+    "translation": "больница"
+   },
+   {
+    "word": "大学院",
+    "reading": "だいがくいん",
+    "translation": "аспирантура"
+   },
+   {
+    "word": "入院する",
+    "reading": "にゅういんする",
+    "translation": "лечь в больницу"
+   },
+   {
+    "word": "退院する",
+    "reading": "たいいんする",
+    "translation": "выписаться из больницы"
+   }
+  ]
+ },
+ {
+  "num": 205,
+  "kanji": "店",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "店",
+    "reading": "てん",
+    "translation": "магазин"
+   },
+   {
+    "word": "店員",
+    "reading": "てんいん",
+    "translation": "продавец"
+   },
+   {
+    "word": "喫茶店",
+    "reading": "きっさてん",
+    "translation": "кафе"
+   },
+   {
+    "word": "店",
+    "reading": "みせ",
+    "translation": "магазин"
+   }
+  ]
+ },
+ {
+  "num": 206,
+  "kanji": "遠",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "遠い",
+    "reading": "とおい",
+    "translation": "далёкий"
+   },
+   {
+    "word": "遠足",
+    "reading": "えんそく",
+    "translation": "экскурсия"
+   }
+  ]
+ },
+ {
+  "num": 207,
+  "kanji": "建",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "建てる",
+    "reading": "たてる",
+    "translation": "строить"
+   },
+   {
+    "word": "建物",
+    "reading": "たてもの",
+    "translation": "здание"
+   }
+  ]
+ },
+ {
+  "num": 208,
+  "kanji": "物",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "物",
+    "reading": "もの",
+    "translation": "вещь"
+   },
+   {
+    "word": "動物",
+    "reading": "どうぶつ",
+    "translation": "животное"
+   },
+   {
+    "word": "荷物",
+    "reading": "にもつ",
+    "translation": "багаж"
+   },
+   {
+    "word": "食べ物",
+    "reading": "たべもの",
+    "translation": "еда"
+   },
+   {
+    "word": "飲み物",
+    "reading": "のみもの",
+    "translation": "напиток"
+   }
+  ]
+ },
+ {
+  "num": 209,
+  "kanji": "工",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "工場",
+    "reading": "こうじょう",
+    "translation": "завод"
+   },
+   {
+    "word": "工業",
+    "reading": "こうぎょう",
+    "translation": "промышленность"
+   }
+  ]
+ },
+ {
+  "num": 210,
+  "kanji": "場",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "場",
+    "reading": "ば",
+    "translation": "место"
+   },
+   {
+    "word": "工場",
+    "reading": "こうじょう",
+    "translation": "завод"
+   },
+   {
+    "word": "駐車場",
+    "reading": "ちゅうしゃじょう",
+    "translation": "парковка"
+   },
+   {
+    "word": "場所",
+    "reading": "ばしょ",
+    "translation": "место"
+   }
+  ]
+ },
+ {
+  "num": 211,
+  "kanji": "校",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "校",
+    "reading": "こう",
+    "translation": "школа"
+   },
+   {
+    "word": "学校",
+    "reading": "がっこう",
+    "translation": "школа"
+   },
+   {
+    "word": "小学校",
+    "reading": "しょうがっこう",
+    "translation": "начальная школа"
+   },
+   {
+    "word": "中学校",
+    "reading": "ちゅうがっこう",
+    "translation": "средняя школа"
+   }
+  ]
+ },
+ {
+  "num": 212,
+  "kanji": "室",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "室",
+    "reading": "しつ",
+    "translation": "комната"
+   },
+   {
+    "word": "教室",
+    "reading": "きょうしつ",
+    "translation": "классная комната"
+   },
+   {
+    "word": "研究室",
+    "reading": "けんきゅうしつ",
+    "translation": "лаборатория, кабинет профессора"
+   },
+   {
+    "word": "会議室",
+    "reading": "かいぎしつ",
+    "translation": "конференц-зал"
+   }
+  ]
+ },
+ {
+  "num": 213,
+  "kanji": "堂",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "堂",
+    "reading": "どう",
+    "translation": "зал"
+   },
+   {
+    "word": "食堂",
+    "reading": "しょくどう",
+    "translation": "столовая, ресторан"
+   },
+   {
+    "word": "講堂",
+    "reading": "こうどう",
+    "translation": "лекционный зал, актовый зал"
+   }
+  ]
+ },
+ {
+  "num": 214,
+  "kanji": "図",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "図",
+    "reading": "ず",
+    "translation": "чертёж, схема"
+   },
+   {
+    "word": "図",
+    "reading": "と",
+    "translation": "книга"
+   },
+   {
+    "word": "地図",
+    "reading": "ちず",
+    "translation": "карта"
+   },
+   {
+    "word": "図書館",
+    "reading": "としょかん",
+    "translation": "библиотека"
+   }
+  ]
+ },
+ {
+  "num": 215,
+  "kanji": "館",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "館",
+    "reading": "かん",
+    "translation": "здание, зала"
+   },
+   {
+    "word": "図書館",
+    "reading": "としょかん",
+    "translation": "библиотека"
+   },
+   {
+    "word": "美術館",
+    "reading": "びじゅつかん",
+    "translation": "художественный музей"
+   },
+   {
+    "word": "映画館",
+    "reading": "えいがかん",
+    "translation": "кинотеатр"
+   }
+  ]
+ },
+ {
+  "num": 216,
+  "kanji": "近",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "近",
+    "reading": "きん",
+    "translation": "близкий"
+   },
+   {
+    "word": "近所",
+    "reading": "きんじょ",
+    "translation": "соседство"
+   },
+   {
+    "word": "最近",
+    "reading": "さいきん",
+    "translation": "недавно"
+   },
+   {
+    "word": "近く",
+    "reading": "ちかく",
+    "translation": "поблизости"
+   }
+  ]
+ },
+ {
+  "num": 217,
+  "kanji": "部",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "部",
+    "reading": "ぶ",
+    "translation": "отдел, часть"
+   },
+   {
+    "word": "学部",
+    "reading": "がくぶ",
+    "translation": "факультет"
+   },
+   {
+    "word": "部屋",
+    "reading": "へや",
+    "translation": "комната"
+   },
+   {
+    "word": "全部",
+    "reading": "ぜんぶ",
+    "translation": "всё"
+   }
+  ]
+ },
+ {
+  "num": 218,
+  "kanji": "屋",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "屋",
+    "reading": "おく",
+    "translation": "крыша"
+   },
+   {
+    "word": "屋",
+    "reading": "や",
+    "translation": "магазин"
+   },
+   {
+    "word": "屋上",
+    "reading": "おくじょう",
+    "translation": "крыша"
+   },
+   {
+    "word": "部屋",
+    "reading": "へや",
+    "translation": "комната"
+   },
+   {
+    "word": "本屋",
+    "reading": "ほんや",
+    "translation": "книжный магазин"
+   }
+  ]
+ },
+ {
+  "num": 219,
+  "kanji": "広",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "広",
+    "reading": "ひろ",
+    "translation": "широкий"
+   },
+   {
+    "word": "広い",
+    "reading": "ひろい",
+    "translation": "широкий"
+   },
+   {
+    "word": "広告",
+    "reading": "こうこく",
+    "translation": "реклама"
+   }
+  ]
+ },
+ {
+  "num": 220,
+  "kanji": "地",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "地",
+    "reading": "ち",
+    "translation": "земля"
+   },
+   {
+    "word": "地図",
+    "reading": "ちず",
+    "translation": "карта"
+   },
+   {
+    "word": "地下",
+    "reading": "ちか",
+    "translation": "подземелье"
+   },
+   {
+    "word": "地震",
+    "reading": "じしん",
+    "translation": "землетрясение"
+   }
+  ]
+ },
+ {
+  "num": 221,
+  "kanji": "東",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "東",
+    "reading": "トウ, ひがし",
+    "translation": "восток"
+   },
+   {
+    "word": "東京",
+    "reading": "とうきょう",
+    "translation": "Токио"
+   },
+   {
+    "word": "東",
+    "reading": "ひがし",
+    "translation": "восток"
+   }
+  ]
+ },
+ {
+  "num": 222,
+  "kanji": "西",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "西",
+    "reading": "セイ, にし",
+    "translation": "запад"
+   },
+   {
+    "word": "西洋",
+    "reading": "せいよう",
+    "translation": "западные страны"
+   },
+   {
+    "word": "西",
+    "reading": "にし",
+    "translation": "запад"
+   }
+  ]
+ },
+ {
+  "num": 223,
+  "kanji": "南",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "南",
+    "reading": "ナン, みなみ",
+    "translation": "юг"
+   },
+   {
+    "word": "南",
+    "reading": "みなみ",
+    "translation": "юг"
+   },
+   {
+    "word": "東南アジア",
+    "reading": "とうなんアジア",
+    "translation": "Юго-Восточная Азия"
+   }
+  ]
+ },
+ {
+  "num": 224,
+  "kanji": "北",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "北",
+    "reading": "ホク, きた",
+    "translation": "север"
+   },
+   {
+    "word": "北海道",
+    "reading": "ほっかいどう",
+    "translation": "Хоккайдо"
+   },
+   {
+    "word": "北",
+    "reading": "きた",
+    "translation": "север"
+   }
+  ]
+ },
+ {
+  "num": 225,
+  "kanji": "京",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "京",
+    "reading": "キョウ",
+    "translation": "столица"
+   },
+   {
+    "word": "東京",
+    "reading": "とうきょう",
+    "translation": "Токио"
+   },
+   {
+    "word": "京都",
+    "reading": "きょうと",
+    "translation": "Киото"
+   }
+  ]
+ },
+ {
+  "num": 226,
+  "kanji": "世",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "世",
+    "reading": "セ",
+    "translation": "мир, поколение"
+   },
+   {
+    "word": "世界",
+    "reading": "せかい",
+    "translation": "мир"
+   },
+   {
+    "word": "世代",
+    "reading": "せだい",
+    "translation": "поколение"
+   }
+  ]
+ },
+ {
+  "num": 227,
+  "kanji": "界",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "界",
+    "reading": "カイ",
+    "translation": "граница, мир"
+   },
+   {
+    "word": "世界",
+    "reading": "せかい",
+    "translation": "мир"
+   },
+   {
+    "word": "限界",
+    "reading": "げんかい",
+    "translation": "предел"
+   }
+  ]
+ },
+ {
+  "num": 228,
+  "kanji": "外",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "外",
+    "reading": "ガイ, そと",
+    "translation": "снаружи, вне"
+   },
+   {
+    "word": "外国",
+    "reading": "がいこく",
+    "translation": "иностранное государство"
+   },
+   {
+    "word": "外",
+    "reading": "そと",
+    "translation": "снаружи"
+   }
+  ]
+ },
+ {
+  "num": 229,
+  "kanji": "国",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "国",
+    "reading": "コク, くに",
+    "translation": "страна"
+   },
+   {
+    "word": "国",
+    "reading": "くに",
+    "translation": "страна"
+   },
+   {
+    "word": "外国",
+    "reading": "がいこく",
+    "translation": "иностранное государство"
+   }
+  ]
+ },
+ {
+  "num": 230,
+  "kanji": "海",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "海",
+    "reading": "カイ, うみ",
+    "translation": "море"
+   },
+   {
+    "word": "海",
+    "reading": "うみ",
+    "translation": "море"
+   },
+   {
+    "word": "海外",
+    "reading": "かいがい",
+    "translation": "заграница"
+   }
+  ]
+ },
+ {
+  "num": 231,
+  "kanji": "都",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "都",
+    "reading": "と",
+    "translation": "столица"
+   },
+   {
+    "word": "京都",
+    "reading": "きょうと",
+    "translation": "Киото"
+   },
+   {
+    "word": "東京都",
+    "reading": "とうきょうと",
+    "translation": "Токийская столичная область"
+   }
+  ]
+ },
+ {
+  "num": 232,
+  "kanji": "道",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "道",
+    "reading": "どう",
+    "translation": "дорога, путь"
+   },
+   {
+    "word": "道具",
+    "reading": "どうぐ",
+    "translation": "инструмент"
+   },
+   {
+    "word": "柔道",
+    "reading": "じゅうどう",
+    "translation": "дзюдо"
+   }
+  ]
+ },
+ {
+  "num": 233,
+  "kanji": "府",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "府",
+    "reading": "ふ",
+    "translation": "административная префектура"
+   },
+   {
+    "word": "大阪府",
+    "reading": "おおさかふ",
+    "translation": "Префектура Осака"
+   },
+   {
+    "word": "京都府",
+    "reading": "きょうとふ",
+    "translation": "Префектура Киото"
+   }
+  ]
+ },
+ {
+  "num": 234,
+  "kanji": "県",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "県",
+    "reading": "けん",
+    "translation": "префектура"
+   },
+   {
+    "word": "〜県",
+    "reading": "けん",
+    "translation": "префектура (в названиях префектур Японии)"
+   }
+  ]
+ },
+ {
+  "num": 235,
+  "kanji": "区",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "区",
+    "reading": "く",
+    "translation": "район"
+   },
+   {
+    "word": "区",
+    "reading": "く",
+    "translation": "район"
+   },
+   {
+    "word": "東京都",
+    "reading": "とうきょうく",
+    "translation": "районы Токио"
+   }
+  ]
+ },
+ {
+  "num": 236,
+  "kanji": "市",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "市",
+    "reading": "し",
+    "translation": "город"
+   },
+   {
+    "word": "市民",
+    "reading": "しみん",
+    "translation": "гражданин"
+   },
+   {
+    "word": "〜市",
+    "reading": "し",
+    "translation": "город"
+   }
+  ]
+ },
+ {
+  "num": 237,
+  "kanji": "町",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "町",
+    "reading": "ちょう",
+    "translation": "город, поселок"
+   },
+   {
+    "word": "町",
+    "reading": "まち",
+    "translation": "городок, квартал"
+   }
+  ]
+ },
+ {
+  "num": 238,
+  "kanji": "村",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "村",
+    "reading": "そん",
+    "translation": "деревня"
+   },
+   {
+    "word": "村",
+    "reading": "むら",
+    "translation": "деревня"
+   }
+  ]
+ },
+ {
+  "num": 239,
+  "kanji": "住",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "住",
+    "reading": "じゅう",
+    "translation": "жить"
+   },
+   {
+    "word": "住所",
+    "reading": "じゅうしょ",
+    "translation": "адрес"
+   },
+   {
+    "word": "住む",
+    "reading": "すむ",
+    "translation": "жить"
+   }
+  ]
+ },
+ {
+  "num": 240,
+  "kanji": "所",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "所",
+    "reading": "しょ",
+    "translation": "место"
+   },
+   {
+    "word": "住所",
+    "reading": "じゅうしょ",
+    "translation": "адрес"
+   },
+   {
+    "word": "台所",
+    "reading": "だいどころ",
+    "translation": "кухня"
+   },
+   {
+    "word": "近所",
+    "reading": "きんじょ",
+    "translation": "соседство"
+   }
+  ]
+ },
+ {
+  "num": 241,
+  "kanji": "体",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "体",
+    "reading": "からだ",
+    "translation": "тело"
+   },
+   {
+    "word": "体",
+    "reading": "からだ",
+    "translation": "тело"
+   }
+  ]
+ },
+ {
+  "num": 242,
+  "kanji": "頭",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "頭",
+    "reading": "あたま",
+    "translation": "голова"
+   },
+   {
+    "word": "頭",
+    "reading": "あたま",
+    "translation": "голова"
+   }
+  ]
+ },
+ {
+  "num": 243,
+  "kanji": "首",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "首",
+    "reading": "くび",
+    "translation": "шея"
+   },
+   {
+    "word": "首",
+    "reading": "くび",
+    "translation": "шея"
+   }
+  ]
+ },
+ {
+  "num": 244,
+  "kanji": "手",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "手",
+    "reading": "て",
+    "translation": "рука"
+   },
+   {
+    "word": "手",
+    "reading": "て",
+    "translation": "рука"
+   },
+   {
+    "word": "手紙",
+    "reading": "てがみ",
+    "translation": "письмо"
+   },
+   {
+    "word": "下手",
+    "reading": "へた",
+    "translation": "неумелый"
+   },
+   {
+    "word": "上手",
+    "reading": "じょうず",
+    "translation": "умелый"
+   }
+  ]
+ },
+ {
+  "num": 245,
+  "kanji": "足",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "足",
+    "reading": "あし",
+    "translation": "нога"
+   },
+   {
+    "word": "足",
+    "reading": "あし",
+    "translation": "нога"
+   },
+   {
+    "word": "足りる",
+    "reading": "たりる",
+    "translation": "быть достаточным"
+   },
+   {
+    "word": "足す",
+    "reading": "たす",
+    "translation": "добавлять"
+   }
+  ]
+ },
+ {
+  "num": 246,
+  "kanji": "顔",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "顔",
+    "reading": "かお",
+    "translation": "лицо"
+   },
+   {
+    "word": "顔",
+    "reading": "かお",
+    "translation": "лицо"
+   }
+  ]
+ },
+ {
+  "num": 247,
+  "kanji": "目",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "目",
+    "reading": "め",
+    "translation": "глаз"
+   },
+   {
+    "word": "目",
+    "reading": "め",
+    "translation": "глаз"
+   },
+   {
+    "word": "第～目",
+    "reading": "だい～め",
+    "translation": "счет для порядковых номеров"
+   }
+  ]
+ },
+ {
+  "num": 248,
+  "kanji": "耳",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "耳",
+    "reading": "みみ",
+    "translation": "ухо"
+   },
+   {
+    "word": "耳",
+    "reading": "みみ",
+    "translation": "ухо"
+   }
+  ]
+ },
+ {
+  "num": 249,
+  "kanji": "口",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "口",
+    "reading": "くち",
+    "translation": "рот"
+   },
+   {
+    "word": "人口",
+    "reading": "じんこう",
+    "translation": "население"
+   },
+   {
+    "word": "入り口",
+    "reading": "いりぐち",
+    "translation": "вход"
+   },
+   {
+    "word": "出口",
+    "reading": "でぐち",
+    "translation": "выход"
+   }
+  ]
+ },
+ {
+  "num": 250,
+  "kanji": "力",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "力",
+    "reading": "ちから",
+    "translation": "сила"
+   },
+   {
+    "word": "力",
+    "reading": "ちから",
+    "translation": "сила"
+   }
+  ]
+ },
+ {
+  "num": 251,
+  "kanji": "風",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "風",
+    "reading": "かぜ",
+    "translation": "ветер"
+   },
+   {
+    "word": "台風",
+    "reading": "たいふう",
+    "translation": "тайфун"
+   },
+   {
+    "word": "風呂",
+    "reading": "ふろ",
+    "translation": "ванна"
+   },
+   {
+    "word": "風",
+    "reading": "かぜ",
+    "translation": "ветер"
+   },
+   {
+    "word": "風邪",
+    "reading": "かぜ",
+    "translation": "простуда"
+   }
+  ]
+ },
+ {
+  "num": 252,
+  "kanji": "声",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "声",
+    "reading": "こえ",
+    "translation": "голос"
+   },
+   {
+    "word": "声",
+    "reading": "こえ",
+    "translation": "голос"
+   },
+   {
+    "word": "大声",
+    "reading": "おおごえ",
+    "translation": "громкий голос"
+   }
+  ]
+ },
+ {
+  "num": 253,
+  "kanji": "医",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "医",
+    "reading": "い",
+    "translation": "медицина"
+   },
+   {
+    "word": "医者",
+    "reading": "いしゃ",
+    "translation": "врач"
+   },
+   {
+    "word": "医学",
+    "reading": "いがく",
+    "translation": "медицина"
+   },
+   {
+    "word": "歯医者",
+    "reading": "はいしゃ",
+    "translation": "стоматолог"
+   }
+  ]
+ },
+ {
+  "num": 254,
+  "kanji": "者",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "者",
+    "reading": "しゃ",
+    "translation": "человек, лицо"
+   },
+   {
+    "word": "医者",
+    "reading": "いしゃ",
+    "translation": "врач"
+   },
+   {
+    "word": "歯医者",
+    "reading": "はいしゃ",
+    "translation": "стоматолог"
+   }
+  ]
+ },
+ {
+  "num": 255,
+  "kanji": "薬",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "薬",
+    "reading": "くすり",
+    "translation": "лекарство"
+   },
+   {
+    "word": "薬",
+    "reading": "くすり",
+    "translation": "лекарство"
+   },
+   {
+    "word": "薬局",
+    "reading": "やっきょく",
+    "translation": "аптека"
+   }
+  ]
+ },
+ {
+  "num": 256,
+  "kanji": "飯",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "飯",
+    "reading": "はん",
+    "translation": "варёный рис"
+   },
+   {
+    "word": "ご飯",
+    "reading": "ごはん",
+    "translation": "рис"
+   },
+   {
+    "word": "朝ご飯",
+    "reading": "あさごはん",
+    "translation": "завтрак"
+   },
+   {
+    "word": "昼ご飯",
+    "reading": "ひるごはん",
+    "translation": "обед"
+   },
+   {
+    "word": "晩ご飯",
+    "reading": "ばんごはん",
+    "translation": "ужин"
+   }
+  ]
+ },
+ {
+  "num": 257,
+  "kanji": "野",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "野",
+    "reading": "や",
+    "translation": "поле"
+   },
+   {
+    "word": "野菜",
+    "reading": "やさい",
+    "translation": "овощи"
+   }
+  ]
+ },
+ {
+  "num": 258,
+  "kanji": "菜",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "菜",
+    "reading": "さい",
+    "translation": "овощи"
+   },
+   {
+    "word": "野菜",
+    "reading": "やさい",
+    "translation": "овощи"
+   }
+  ]
+ },
+ {
+  "num": 259,
+  "kanji": "心",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "心",
+    "reading": "こころ",
+    "translation": "сердце"
+   },
+   {
+    "word": "心配する",
+    "reading": "しんぱいする",
+    "translation": "беспокоиться"
+   },
+   {
+    "word": "安心する",
+    "reading": "あんしんする",
+    "translation": "успокаиваться"
+   },
+   {
+    "word": "熱心な",
+    "reading": "ねっしんな",
+    "translation": "усердный"
+   }
+  ]
+ },
+ {
+  "num": 260,
+  "kanji": "死",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "死",
+    "reading": "し",
+    "translation": "смерть"
+   },
+   {
+    "word": "死ぬ",
+    "reading": "しぬ",
+    "translation": "умирать"
+   }
+  ]
+ },
+ {
+  "num": 261,
+  "kanji": "乗",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "乗",
+    "reading": "の-る",
+    "translation": "садиться (в транспорт), ехать"
+   },
+   {
+    "word": "乗り換える",
+    "reading": "のりかえる",
+    "translation": "пересаживаться, делать пересадку"
+   },
+   {
+    "word": "乗り物",
+    "reading": "のりもの",
+    "translation": "транспортное средство"
+   }
+  ]
+ },
+ {
+  "num": 262,
+  "kanji": "降",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "降",
+    "reading": "お-りる, ふ-る",
+    "translation": "спускаться, сходить (с транспорта), идти (о дожде, снеге)"
+   },
+   {
+    "word": "降りる",
+    "reading": "おりる",
+    "translation": "выходить, сходить (из транспорта)"
+   },
+   {
+    "word": "降る",
+    "reading": "ふる",
+    "translation": "падать (о дожде, снеге)"
+   }
+  ]
+ },
+ {
+  "num": 263,
+  "kanji": "歩",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "歩",
+    "reading": "ある-く",
+    "translation": "идти пешком, шагать"
+   },
+   {
+    "word": "散歩する",
+    "reading": "さんぽする",
+    "translation": "гулять, совершать прогулку"
+   }
+  ]
+ },
+ {
+  "num": 264,
+  "kanji": "走",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "走",
+    "reading": "はし-る",
+    "translation": "бежать, ехать (о транспортных средствах)"
+   }
+  ]
+ },
+ {
+  "num": 265,
+  "kanji": "止",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "止",
+    "reading": "と-まる, と-める",
+    "translation": "останавливаться, прекращать"
+   },
+   {
+    "word": "止める",
+    "reading": "とめる",
+    "translation": "останавливать, прекращать"
+   }
+  ]
+ },
+ {
+  "num": 266,
+  "kanji": "電",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "電",
+    "reading": "デン",
+    "translation": "электричество"
+   },
+   {
+    "word": "電車",
+    "reading": "でんしゃ",
+    "translation": "поезд"
+   },
+   {
+    "word": "電話",
+    "reading": "でんわ",
+    "translation": "телефон"
+   },
+   {
+    "word": "電気",
+    "reading": "でんき",
+    "translation": "электричество"
+   }
+  ]
+ },
+ {
+  "num": 267,
+  "kanji": "自",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "自",
+    "reading": "ジ",
+    "translation": "сам, автоматически"
+   },
+   {
+    "word": "自分で",
+    "reading": "じぶんで",
+    "translation": "самостоятельно"
+   },
+   {
+    "word": "自動車",
+    "reading": "じどうしゃ",
+    "translation": "автомобиль"
+   }
+  ]
+ },
+ {
+  "num": 268,
+  "kanji": "転",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "転",
+    "reading": "テン",
+    "translation": "поворачиваться, катиться"
+   },
+   {
+    "word": "自転車",
+    "reading": "じてんしゃ",
+    "translation": "велосипед"
+   },
+   {
+    "word": "転がる",
+    "reading": "ころがる",
+    "translation": "катиться"
+   }
+  ]
+ },
+ {
+  "num": 269,
+  "kanji": "動",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "動",
+    "reading": "うご-く",
+    "translation": "двигаться, работать (о механизме)"
+   },
+   {
+    "word": "動物",
+    "reading": "どうぶつ",
+    "translation": "животное"
+   },
+   {
+    "word": "自動車",
+    "reading": "じどうしゃ",
+    "translation": "автомобиль"
+   }
+  ]
+ },
+ {
+  "num": 270,
+  "kanji": "鉄",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "鉄",
+    "reading": "テツ",
+    "translation": "железо"
+   },
+   {
+    "word": "地下鉄",
+    "reading": "ちかてつ",
+    "translation": "метро"
+   }
+  ]
+ },
+ {
+  "num": 271,
+  "kanji": "運",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "運",
+    "reading": "ウン",
+    "translation": "перевозить, двигаться"
+   },
+   {
+    "word": "運",
+    "reading": "はこ-ぶ",
+    "translation": "нести, перевозить"
+   },
+   {
+    "word": "運転する",
+    "reading": "うんてんする",
+    "translation": "водить машину, управлять"
+   },
+   {
+    "word": "運動",
+    "reading": "うんどう",
+    "translation": "движение, упражнения"
+   }
+  ]
+ },
+ {
+  "num": 272,
+  "kanji": "通",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "通",
+    "reading": "ツウ",
+    "translation": "проходить, проезжать"
+   },
+   {
+    "word": "通",
+    "reading": "とお-る",
+    "translation": "проходить через"
+   },
+   {
+    "word": "通",
+    "reading": "かよ-う",
+    "translation": "ходить (регулярно), курсировать"
+   },
+   {
+    "word": "交通",
+    "reading": "こうつう",
+    "translation": "транспорт"
+   },
+   {
+    "word": "通り",
+    "reading": "とおり",
+    "translation": "улица, дорога"
+   }
+  ]
+ },
+ {
+  "num": 273,
+  "kanji": "入",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "入",
+    "reading": "ニュウ",
+    "translation": "входить, помещать"
+   },
+   {
+    "word": "入",
+    "reading": "い-る、はい-る",
+    "translation": "входить"
+   },
+   {
+    "word": "入学する",
+    "reading": "にゅうがくする",
+    "translation": "поступать в школу"
+   },
+   {
+    "word": "入院する",
+    "reading": "にゅういんする",
+    "translation": "ложиться в больницу"
+   }
+  ]
+ },
+ {
+  "num": 274,
+  "kanji": "出",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "出",
+    "reading": "シュツ",
+    "translation": "выходить, доставать"
+   },
+   {
+    "word": "出",
+    "reading": "で-る、だ-す",
+    "translation": "выходить, доставать"
+   },
+   {
+    "word": "出口",
+    "reading": "でぐち",
+    "translation": "выход"
+   },
+   {
+    "word": "出発する",
+    "reading": "しゅっぱつする",
+    "translation": "отправляться"
+   }
+  ]
+ },
+ {
+  "num": 275,
+  "kanji": "着",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "着",
+    "reading": "チャク",
+    "translation": "прибывать, надевать"
+   },
+   {
+    "word": "着",
+    "reading": "つ-く、き-る",
+    "translation": "прибывать, надевать"
+   },
+   {
+    "word": "着物",
+    "reading": "きもの",
+    "translation": "кимоно"
+   },
+   {
+    "word": "上着",
+    "reading": "うわぎ",
+    "translation": "верхняя одежда"
+   }
+  ]
+ },
+ {
+  "num": 276,
+  "kanji": "急",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "急",
+    "reading": "キュウ",
+    "translation": "спешить, срочный"
+   },
+   {
+    "word": "急",
+    "reading": "いそ-ぐ",
+    "translation": "торопиться"
+   },
+   {
+    "word": "特急",
+    "reading": "とっきゅう",
+    "translation": "скорый поезд"
+   },
+   {
+    "word": "急行",
+    "reading": "きゅうこう",
+    "translation": "экспресс"
+   }
+  ]
+ },
+ {
+  "num": 277,
+  "kanji": "番",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "番",
+    "reading": "バン",
+    "translation": "номер, очередность"
+   },
+   {
+    "word": "番号",
+    "reading": "ばんごう",
+    "translation": "номер"
+   },
+   {
+    "word": "番組",
+    "reading": "ばんぐみ",
+    "translation": "телевизионная программа"
+   }
+  ]
+ },
+ {
+  "num": 278,
+  "kanji": "号",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "号",
+    "reading": "ゴウ",
+    "translation": "номер, знак"
+   },
+   {
+    "word": "番号",
+    "reading": "ばんごう",
+    "translation": "номер"
+   },
+   {
+    "word": "信号",
+    "reading": "しんごう",
+    "translation": "светофор"
+   }
+  ]
+ },
+ {
+  "num": 279,
+  "kanji": "台",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "台",
+    "reading": "ダイ",
+    "translation": "подставка, платформа"
+   },
+   {
+    "word": "台所",
+    "reading": "だいどころ",
+    "translation": "кухня"
+   },
+   {
+    "word": "台風",
+    "reading": "たいふう",
+    "translation": "тайфун"
+   }
+  ]
+ },
+ {
+  "num": 280,
+  "kanji": "回",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "回",
+    "reading": "カイ",
+    "translation": "раз, вращение"
+   },
+   {
+    "word": "回",
+    "reading": "まわ-る",
+    "translation": "вращаться"
+   },
+   {
+    "word": "回数",
+    "reading": "かいすう",
+    "translation": "количество раз"
+   }
+  ]
+ },
+ {
+  "num": 281,
+  "kanji": "作",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "作",
+    "reading": "サク、つく-る",
+    "translation": "делать, создавать"
+   },
+   {
+    "word": "作文",
+    "reading": "さくぶん",
+    "translation": "сочинение"
+   },
+   {
+    "word": "作る",
+    "reading": "つくる",
+    "translation": "делать, создавать"
+   }
+  ]
+ },
+ {
+  "num": 282,
+  "kanji": "使",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "使",
+    "reading": "シ、つか-う",
+    "translation": "использовать"
+   },
+   {
+    "word": "使館",
+    "reading": "しかん",
+    "translation": "посольство"
+   },
+   {
+    "word": "使う",
+    "reading": "つかう",
+    "translation": "использовать"
+   }
+  ]
+ },
+ {
+  "num": 283,
+  "kanji": "考",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "考",
+    "reading": "コウ、かんが-える",
+    "translation": "думать, размышлять"
+   },
+   {
+    "word": "考える",
+    "reading": "かんがえる",
+    "translation": "думать"
+   }
+  ]
+ },
+ {
+  "num": 284,
+  "kanji": "思",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "思",
+    "reading": "シ、おも-う",
+    "translation": "думать, вспоминать"
+   },
+   {
+    "word": "思う",
+    "reading": "おもう",
+    "translation": "думать"
+   },
+   {
+    "word": "思い出す",
+    "reading": "おもいだす",
+    "translation": "вспоминать"
+   }
+  ]
+ },
+ {
+  "num": 285,
+  "kanji": "知",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "知",
+    "reading": "チ、し-る",
+    "translation": "знать, сообщать"
+   },
+   {
+    "word": "知る",
+    "reading": "しる",
+    "translation": "знать"
+   },
+   {
+    "word": "知らせる",
+    "reading": "しらせる",
+    "translation": "сообщать"
+   }
+  ]
+ },
+ {
+  "num": 286,
+  "kanji": "業",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "業",
+    "reading": "ギョウ",
+    "translation": "работа, бизнес"
+   },
+   {
+    "word": "卒業する",
+    "reading": "そつぎょうする",
+    "translation": "выпускаться"
+   },
+   {
+    "word": "工業",
+    "reading": "こうぎょう",
+    "translation": "промышленность"
+   }
+  ]
+ },
+ {
+  "num": 287,
+  "kanji": "題",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "題",
+    "reading": "ダイ",
+    "translation": "тема, заголовок"
+   },
+   {
+    "word": "問題",
+    "reading": "もんだい",
+    "translation": "проблема, вопрос"
+   },
+   {
+    "word": "宿題",
+    "reading": "しゅくだい",
+    "translation": "домашняя работа"
+   }
+  ]
+ },
+ {
+  "num": 288,
+  "kanji": "試",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "試",
+    "reading": "シ",
+    "translation": "пробовать, тестировать"
+   },
+   {
+    "word": "試験",
+    "reading": "しけん",
+    "translation": "экзамен"
+   },
+   {
+    "word": "試合",
+    "reading": "しあい",
+    "translation": "матч"
+   }
+  ]
+ },
+ {
+  "num": 289,
+  "kanji": "験",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "験",
+    "reading": "ケン",
+    "translation": "тест, испытание"
+   },
+   {
+    "word": "試験",
+    "reading": "しけん",
+    "translation": "экзамен"
+   },
+   {
+    "word": "経験",
+    "reading": "けいけん",
+    "translation": "опыт"
+   }
+  ]
+ },
+ {
+  "num": 290,
+  "kanji": "合",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "合",
+    "reading": "ゴウ、あ-う",
+    "translation": "подходить, соответствовать"
+   },
+   {
+    "word": "試合",
+    "reading": "しあい",
+    "translation": "матч"
+   },
+   {
+    "word": "具合",
+    "reading": "ぐあい",
+    "translation": "состояние, положение"
+   }
+  ]
+ },
+ {
+  "num": 291,
+  "kanji": "料",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "料",
+    "reading": "リョウ",
+    "translation": "материалы, плата"
+   },
+   {
+    "word": "食料品",
+    "reading": "しょくりょうひん",
+    "translation": "продукты питания"
+   }
+  ]
+ },
+ {
+  "num": 292,
+  "kanji": "理",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "理",
+    "reading": "リ",
+    "translation": "причина, принцип"
+   },
+   {
+    "word": "理由",
+    "reading": "りゆう",
+    "translation": "причина"
+   },
+   {
+    "word": "地理",
+    "reading": "ちり",
+    "translation": "география"
+   }
+  ]
+ },
+ {
+  "num": 293,
+  "kanji": "品",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "品",
+    "reading": "ヒン, しな",
+    "translation": "статья, продукт"
+   },
+   {
+    "word": "品物",
+    "reading": "しなもの",
+    "translation": "товар"
+   },
+   {
+    "word": "食品",
+    "reading": "しょくひん",
+    "translation": "продукты питания"
+   }
+  ]
+ },
+ {
+  "num": 294,
+  "kanji": "味",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "味",
+    "reading": "ミ, あじ",
+    "translation": "вкус, значение"
+   },
+   {
+    "word": "意味",
+    "reading": "いみ",
+    "translation": "значение"
+   },
+   {
+    "word": "趣味",
+    "reading": "しゅみ",
+    "translation": "хобби"
+   }
+  ]
+ },
+ {
+  "num": 295,
+  "kanji": "用",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "用",
+    "reading": "ヨウ",
+    "translation": "использование, поручение"
+   },
+   {
+    "word": "用事",
+    "reading": "ようじ",
+    "translation": "дело"
+   },
+   {
+    "word": "利用する",
+    "reading": "りようする",
+    "translation": "использовать"
+   }
+  ]
+ },
+ {
+  "num": 296,
+  "kanji": "天",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "天",
+    "reading": "テン",
+    "translation": "небо, небеса"
+   },
+   {
+    "word": "天気",
+    "reading": "てんき",
+    "translation": "погода"
+   },
+   {
+    "word": "天気予報",
+    "reading": "てんきよほう",
+    "translation": "прогноз погоды"
+   }
+  ]
+ },
+ {
+  "num": 297,
+  "kanji": "空",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "空",
+    "reading": "クウ, そら",
+    "translation": "небо, воздух"
+   },
+   {
+    "word": "空港",
+    "reading": "くうこう",
+    "translation": "аэропорт"
+   },
+   {
+    "word": "空気",
+    "reading": "くうき",
+    "translation": "воздух"
+   }
+  ]
+ },
+ {
+  "num": 298,
+  "kanji": "以",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "以",
+    "reading": "イ",
+    "translation": "чем"
+   },
+   {
+    "word": "以上",
+    "reading": "いじょう",
+    "translation": "больше чем"
+   },
+   {
+    "word": "以下",
+    "reading": "いか",
+    "translation": "меньше чем"
+   }
+  ]
+ },
+ {
+  "num": 299,
+  "kanji": "全",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "全",
+    "reading": "ゼン",
+    "translation": "весь, целый"
+   },
+   {
+    "word": "全体",
+    "reading": "ぜんたい",
+    "translation": "весь"
+   },
+   {
+    "word": "安全",
+    "reading": "あんぜん",
+    "translation": "безопасность"
+   }
+  ]
+ },
+ {
+  "num": 300,
+  "kanji": "説",
+  "level": "N5・N4",
+  "words": [
+   {
+    "word": "説",
+    "reading": "セツ",
+    "translation": "объяснять, теория"
+   },
+   {
+    "word": "説明する",
+    "reading": "せつめいする",
+    "translation": "объяснять"
+   },
+   {
+    "word": "小説",
+    "reading": "しょうせつ",
+    "translation": "роман"
+   }
+  ]
+ },
+ {
+  "num": 301,
+  "kanji": "級",
+  "level": "N3",
+  "words": [
+   {
+    "word": "中級",
+    "reading": "ちゅうきゅう",
+    "translation": "средний уровень (курсы)"
+   },
+   {
+    "word": "上級",
+    "reading": "じょうきゅう",
+    "translation": "продвинутый уровень (курсы)"
+   }
+  ]
+ },
+ {
+  "num": 302,
+  "kanji": "予",
+  "level": "N3",
+  "words": [
+   {
+    "word": "予習する",
+    "reading": "よしゅうする",
+    "translation": "готовиться к занятиям заранее"
+   }
+  ]
+ },
+ {
+  "num": 303,
+  "kanji": "定",
+  "level": "N3",
+  "words": [
+   {
+    "word": "予定",
+    "reading": "よてい",
+    "translation": "план, расписание"
+   },
+   {
+    "word": "定規",
+    "reading": "じょうぎ",
+    "translation": "линейка"
+   }
+  ]
+ },
+ {
+  "num": 304,
+  "kanji": "表",
+  "level": "N3",
+  "words": [
+   {
+    "word": "表",
+    "reading": "ひょう",
+    "translation": "таблица"
+   },
+   {
+    "word": "表現",
+    "reading": "ひょうげん",
+    "translation": "выражение"
+   },
+   {
+    "word": "発表する",
+    "reading": "はっぴょうする",
+    "translation": "объявлять, делать публичным"
+   },
+   {
+    "word": "表",
+    "reading": "おもて",
+    "translation": "лицевая сторона"
+   },
+   {
+    "word": "表す",
+    "reading": "あらわす",
+    "translation": "выражать"
+   }
+  ]
+ },
+ {
+  "num": 305,
+  "kanji": "授",
+  "level": "N3",
+  "words": [
+   {
+    "word": "授業",
+    "reading": "じゅぎょう",
+    "translation": "занятие, урок"
+   },
+   {
+    "word": "教授",
+    "reading": "きょうじゅ",
+    "translation": "профессор"
+   }
+  ]
+ },
+ {
+  "num": 306,
+  "kanji": "宿",
+  "level": "N3",
+  "words": [
+   {
+    "word": "宿題",
+    "reading": "しゅくだい",
+    "translation": "домашнее задание"
+   },
+   {
+    "word": "宿",
+    "reading": "やど",
+    "translation": "гостиница, ночлег"
+   }
+  ]
+ },
+ {
+  "num": 307,
+  "kanji": "復",
+  "level": "N3",
+  "words": [
+   {
+    "word": "復習する",
+    "reading": "ふくしゅうする",
+    "translation": "повторять пройденное"
+   },
+   {
+    "word": "回復する",
+    "reading": "かいふくする",
+    "translation": "восстанавливаться, выздоравливать"
+   }
+  ]
+ },
+ {
+  "num": 308,
+  "kanji": "辞",
+  "level": "N3",
+  "words": [
+   {
+    "word": "辞書",
+    "reading": "じしょ",
+    "translation": "словарь"
+   },
+   {
+    "word": "辞める",
+    "reading": "やめる",
+    "translation": "увольняться"
+   }
+  ]
+ },
+ {
+  "num": 309,
+  "kanji": "初",
+  "level": "N3",
+  "words": [
+   {
+    "word": "初級",
+    "reading": "しょきゅう",
+    "translation": "начальный уровень (курсы)"
+   },
+   {
+    "word": "初めて",
+    "reading": "はじめて",
+    "translation": "впервые"
+   },
+   {
+    "word": "初めに",
+    "reading": "はじめに",
+    "translation": "сначала, в начале"
+   }
+  ]
+ },
+ {
+  "num": 310,
+  "kanji": "第",
+  "level": "N3",
+  "words": [
+   {
+    "word": "第〜",
+    "reading": "だい〜",
+    "translation": "префикс порядкового числительного"
+   }
+  ]
+ },
+ {
+  "num": 311,
+  "kanji": "課",
+  "level": "N3",
+  "words": [
+   {
+    "word": "課",
+    "reading": "か",
+    "translation": "раздел, урок"
+   },
+   {
+    "word": "課程",
+    "reading": "かてい",
+    "translation": "курс, программа"
+   }
+  ]
+ },
+ {
+  "num": 312,
+  "kanji": "練",
+  "level": "N3",
+  "words": [
+   {
+    "word": "練習する",
+    "reading": "れんしゅうする",
+    "translation": "тренироваться, упражняться"
+   }
+  ]
+ },
+ {
+  "num": 313,
+  "kanji": "科",
+  "level": "N3",
+  "words": [
+   {
+    "word": "科学",
+    "reading": "かがく",
+    "translation": "наука"
+   },
+   {
+    "word": "教科書",
+    "reading": "きょうかしょ",
+    "translation": "учебник"
+   }
+  ]
+ },
+ {
+  "num": 314,
+  "kanji": "参",
+  "level": "N3",
+  "words": [
+   {
+    "word": "参加する",
+    "reading": "さんかする",
+    "translation": "участвовать"
+   },
+   {
+    "word": "参考書",
+    "reading": "さんこうしょ",
+    "translation": "справочник, пособие"
+   },
+   {
+    "word": "参る",
+    "reading": "まいる",
+    "translation": "идти, приходить (скромно), посещать храм"
+   }
+  ]
+ },
+ {
+  "num": 315,
+  "kanji": "忘",
+  "level": "N3",
+  "words": [
+   {
+    "word": "忘れる",
+    "reading": "わすれる",
+    "translation": "забывать"
+   },
+   {
+    "word": "忘れ物",
+    "reading": "わすれもの",
+    "translation": "забытая вещь"
+   }
+  ]
+ },
+ {
+  "num": 316,
+  "kanji": "覚",
+  "level": "N3",
+  "words": [
+   {
+    "word": "感覚",
+    "reading": "かんかく",
+    "translation": "чувство, ощущение"
+   },
+   {
+    "word": "覚える",
+    "reading": "おぼえる",
+    "translation": "запоминать"
+   },
+   {
+    "word": "目が覚める",
+    "reading": "めがさめる",
+    "translation": "просыпаться"
+   },
+   {
+    "word": "目を覚ます",
+    "reading": "めをさます",
+    "translation": "просыпаться, будить себя"
+   }
+  ]
+ },
+ {
+  "num": 317,
+  "kanji": "組",
+  "level": "N3",
+  "words": [
+   {
+    "word": "組織",
+    "reading": "そしき",
+    "translation": "организация"
+   },
+   {
+    "word": "組",
+    "reading": "くみ",
+    "translation": "группа, пара, набор"
+   },
+   {
+    "word": "番組",
+    "reading": "ばんぐみ",
+    "translation": "телепередача"
+   },
+   {
+    "word": "組む",
+    "reading": "くむ",
+    "translation": "собирать, складывать"
+   },
+   {
+    "word": "組み立てる",
+    "reading": "くみたてる",
+    "translation": "собирать, конструировать"
+   }
+  ]
+ },
+ {
+  "num": 318,
+  "kanji": "席",
+  "level": "N3",
+  "words": [
+   {
+    "word": "席",
+    "reading": "せき",
+    "translation": "место, сиденье"
+   },
+   {
+    "word": "出席する",
+    "reading": "しゅっせきする",
+    "translation": "присутствовать"
+   }
+  ]
+ },
+ {
+  "num": 319,
+  "kanji": "欠",
+  "level": "N3",
+  "words": [
+   {
+    "word": "欠席する",
+    "reading": "けっせきする",
+    "translation": "отсутствовать"
+   },
+   {
+    "word": "欠ける",
+    "reading": "かける",
+    "translation": "недоставать, не хватать"
+   }
+  ]
+ },
+ {
+  "num": 320,
+  "kanji": "板",
+  "level": "N3",
+  "words": [
+   {
+    "word": "黒板",
+    "reading": "こくばん",
+    "translation": "классная доска"
+   },
+   {
+    "word": "板",
+    "reading": "いた",
+    "translation": "доска"
+   }
+  ]
+ },
+ {
+  "num": 321,
+  "kanji": "解",
+  "level": "N3",
+  "words": [
+   {
+    "word": "理解する",
+    "reading": "りかいする",
+    "translation": "понимать"
+   },
+   {
+    "word": "解答",
+    "reading": "かいとう",
+    "translation": "ответ, решение"
+   },
+   {
+    "word": "解決する",
+    "reading": "かいけつする",
+    "translation": "решать проблему"
+   },
+   {
+    "word": "解ける",
+    "reading": "とける",
+    "translation": "развязываться, решаться"
+   },
+   {
+    "word": "解く",
+    "reading": "とく",
+    "translation": "решать, отвечать"
+   }
+  ]
+ },
+ {
+  "num": 322,
+  "kanji": "筆",
+  "level": "N3",
+  "words": [
+   {
+    "word": "鉛筆",
+    "reading": "えんぴつ",
+    "translation": "карандаш"
+   },
+   {
+    "word": "筆記試験",
+    "reading": "ひっきしけん",
+    "translation": "письменный экзамен"
+   },
+   {
+    "word": "筆",
+    "reading": "ふで",
+    "translation": "кисть для письма"
+   }
+  ]
+ },
+ {
+  "num": 323,
+  "kanji": "違",
+  "level": "N3",
+  "words": [
+   {
+    "word": "違反する",
+    "reading": "いはんする",
+    "translation": "нарушать"
+   },
+   {
+    "word": "違う",
+    "reading": "ちがう",
+    "translation": "отличаться, быть неверным"
+   },
+   {
+    "word": "間違う",
+    "reading": "まちがう",
+    "translation": "ошибаться"
+   }
+  ]
+ },
+ {
+  "num": 324,
+  "kanji": "消",
+  "level": "N3",
+  "words": [
+   {
+    "word": "消毒する",
+    "reading": "しょうどくする",
+    "translation": "дезинфицировать"
+   },
+   {
+    "word": "消極的な",
+    "reading": "しょうきょくてきな",
+    "translation": "пассивный, негативный"
+   },
+   {
+    "word": "消える",
+    "reading": "きえる",
+    "translation": "гаснуть, исчезать"
+   },
+   {
+    "word": "消す",
+    "reading": "けす",
+    "translation": "гасить, выключать, стирать"
+   },
+   {
+    "word": "消しゴム",
+    "reading": "けしゴム",
+    "translation": "ластик"
+   }
+  ]
+ },
+ {
+  "num": 325,
+  "kanji": "次",
+  "level": "N3",
+  "words": [
+   {
+    "word": "目次",
+    "reading": "もくじ",
+    "translation": "оглавление"
+   },
+   {
+    "word": "次第に",
+    "reading": "しだいに",
+    "translation": "постепенно"
+   },
+   {
+    "word": "次ぐ",
+    "reading": "つぐ",
+    "translation": "следовать за"
+   },
+   {
+    "word": "次",
+    "reading": "つぎ",
+    "translation": "следующий"
+   }
+  ]
+ },
+ {
+  "num": 326,
+  "kanji": "線",
+  "level": "N3",
+  "words": [
+   {
+    "word": "下線",
+    "reading": "かせん",
+    "translation": "подчёркивание"
+   },
+   {
+    "word": "〜線",
+    "reading": "〜せん",
+    "translation": "линия (~линия)"
+   }
+  ]
+ },
+ {
+  "num": 327,
+  "kanji": "最",
+  "level": "N3",
+  "words": [
+   {
+    "word": "最初に",
+    "reading": "さいしょに",
+    "translation": "сначала, прежде всего"
+   },
+   {
+    "word": "最近",
+    "reading": "さいきん",
+    "translation": "недавно, в последнее время"
+   },
+   {
+    "word": "最も",
+    "reading": "もっとも",
+    "translation": "самый, наиболее"
+   }
+  ]
+ },
+ {
+  "num": 328,
+  "kanji": "適",
+  "level": "N3",
+  "words": [
+   {
+    "word": "適切な",
+    "reading": "てきせつな",
+    "translation": "подходящий, уместный"
+   }
+  ]
+ },
+ {
+  "num": 329,
+  "kanji": "当",
+  "level": "N3",
+  "words": [
+   {
+    "word": "適当な",
+    "reading": "てきとうな",
+    "translation": "подходящий, надлежащий"
+   },
+   {
+    "word": "本当の",
+    "reading": "ほんとうの",
+    "translation": "настоящий, истинный"
+   },
+   {
+    "word": "当たる",
+    "reading": "あたる",
+    "translation": "попадать, угадывать"
+   },
+   {
+    "word": "当てる",
+    "reading": "あてる",
+    "translation": "попадать, прикладывать"
+   }
+  ]
+ },
+ {
+  "num": 330,
+  "kanji": "選",
+  "level": "N3",
+  "words": [
+   {
+    "word": "選手",
+    "reading": "せんしゅ",
+    "translation": "спортсмен, игрок"
+   },
+   {
+    "word": "選挙",
+    "reading": "せんきょ",
+    "translation": "выборы"
+   },
+   {
+    "word": "選ぶ",
+    "reading": "えらぶ",
+    "translation": "выбирать"
+   }
+  ]
+ },
+ {
+  "num": 331,
+  "kanji": "例",
+  "level": "N3",
+  "words": [
+   {
+    "word": "例",
+    "reading": "れい",
+    "translation": "пример"
+   },
+   {
+    "word": "例えば",
+    "reading": "たとえば",
+    "translation": "например"
+   }
+  ]
+ },
+ {
+  "num": 332,
+  "kanji": "形",
+  "level": "N3",
+  "words": [
+   {
+    "word": "〜形",
+    "reading": "〜けい",
+    "translation": "форма (~форма)"
+   },
+   {
+    "word": "形容詞",
+    "reading": "けいようし",
+    "translation": "прилагательное"
+   },
+   {
+    "word": "人形",
+    "reading": "にんぎょう",
+    "translation": "кукла"
+   },
+   {
+    "word": "形",
+    "reading": "かたち",
+    "translation": "форма, очертание"
+   }
+  ]
+ },
+ {
+  "num": 333,
+  "kanji": "変",
+  "level": "N3",
+  "words": [
+   {
+    "word": "変化する",
+    "reading": "へんかする",
+    "translation": "меняться, изменяться"
+   },
+   {
+    "word": "変な",
+    "reading": "へんな",
+    "translation": "странный, необычный"
+   },
+   {
+    "word": "変わる",
+    "reading": "かわる",
+    "translation": "меняться"
+   },
+   {
+    "word": "変える",
+    "reading": "かえる",
+    "translation": "менять, изменять"
+   }
+  ]
+ },
+ {
+  "num": 334,
+  "kanji": "式",
+  "level": "N3",
+  "words": [
+   {
+    "word": "式",
+    "reading": "しき",
+    "translation": "церемония, формула"
+   },
+   {
+    "word": "形式",
+    "reading": "けいしき",
+    "translation": "форма, формат"
+   }
+  ]
+ },
+ {
+  "num": 335,
+  "kanji": "直",
+  "level": "N3",
+  "words": [
+   {
+    "word": "直通の",
+    "reading": "ちょくつうの",
+    "translation": "прямой (прямое сообщение)"
+   },
+   {
+    "word": "直角",
+    "reading": "ちょっかく",
+    "translation": "прямой угол"
+   },
+   {
+    "word": "正直な",
+    "reading": "しょうじきな",
+    "translation": "честный"
+   },
+   {
+    "word": "直る",
+    "reading": "なおる",
+    "translation": "чиниться, исправляться"
+   },
+   {
+    "word": "直す",
+    "reading": "なおす",
+    "translation": "чинить, исправлять"
+   },
+   {
+    "word": "直ちに",
+    "reading": "ただちに",
+    "translation": "немедленно, сразу"
+   }
+  ]
+ },
+ {
+  "num": 336,
+  "kanji": "記",
+  "level": "N3",
+  "words": [
+   {
+    "word": "日記",
+    "reading": "にっき",
+    "translation": "дневник"
+   },
+   {
+    "word": "記入する",
+    "reading": "きにゅうする",
+    "translation": "вписывать, заполнять"
+   },
+   {
+    "word": "記号",
+    "reading": "きごう",
+    "translation": "знак, символ"
+   }
+  ]
+ },
+ {
+  "num": 337,
+  "kanji": "点",
+  "level": "N3",
+  "words": [
+   {
+    "word": "点",
+    "reading": "てん",
+    "translation": "балл, точка"
+   },
+   {
+    "word": "〜点",
+    "reading": "〜てん",
+    "translation": "балл (~балл, ~очко)"
+   }
+  ]
+ },
+ {
+  "num": 338,
+  "kanji": "机",
+  "level": "N3",
+  "words": [
+   {
+    "word": "机",
+    "reading": "つくえ",
+    "translation": "письменный стол"
+   }
+  ]
+ },
+ {
+  "num": 339,
+  "kanji": "数",
+  "level": "N3",
+  "words": [
+   {
+    "word": "数字",
+    "reading": "すうじ",
+    "translation": "цифра"
+   },
+   {
+    "word": "数学",
+    "reading": "すうがく",
+    "translation": "математика"
+   },
+   {
+    "word": "数",
+    "reading": "かず",
+    "translation": "число, количество"
+   },
+   {
+    "word": "数える",
+    "reading": "かぞえる",
+    "translation": "считать"
+   }
+  ]
+ },
+ {
+  "num": 340,
+  "kanji": "余",
+  "level": "N3",
+  "words": [
+   {
+    "word": "余計な",
+    "reading": "よけいな",
+    "translation": "лишний, ненужный"
+   },
+   {
+    "word": "余分の",
+    "reading": "よぶんの",
+    "translation": "излишний, избыточный"
+   },
+   {
+    "word": "余裕",
+    "reading": "よゆう",
+    "translation": "запас, свободное место (время)"
+   },
+   {
+    "word": "余る",
+    "reading": "あまる",
+    "translation": "оставаться в избытке"
+   }
+  ]
+ },
+ {
+  "num": 341,
+  "kanji": "速",
+  "level": "N3",
+  "words": [
+   {
+    "word": "速度",
+    "reading": "そくど",
+    "translation": "скорость"
+   },
+   {
+    "word": "高速",
+    "reading": "こうそく",
+    "translation": "высокая скорость"
+   },
+   {
+    "word": "速い",
+    "reading": "はやい",
+    "translation": "быстрый"
+   }
+  ]
+ },
+ {
+  "num": 342,
+  "kanji": "遅",
+  "level": "N3",
+  "words": [
+   {
+    "word": "遅刻する",
+    "reading": "ちこくする",
+    "translation": "опаздывать"
+   },
+   {
+    "word": "遅い",
+    "reading": "おそい",
+    "translation": "поздний, медленный"
+   },
+   {
+    "word": "遅れる",
+    "reading": "おくれる",
+    "translation": "опаздывать, задерживаться"
+   }
+  ]
+ },
+ {
+  "num": 343,
+  "kanji": "易",
+  "level": "N3",
+  "words": [
+   {
+    "word": "貿易",
+    "reading": "ぼうえき",
+    "translation": "торговля"
+   },
+   {
+    "word": "安易な",
+    "reading": "あんいな",
+    "translation": "лёгкий, беспечный"
+   },
+   {
+    "word": "易しい",
+    "reading": "やさしい",
+    "translation": "лёгкий, простой"
+   }
+  ]
+ },
+ {
+  "num": 344,
+  "kanji": "単",
+  "level": "N3",
+  "words": [
+   {
+    "word": "単語",
+    "reading": "たんご",
+    "translation": "слово"
+   },
+   {
+    "word": "単数",
+    "reading": "たんすう",
+    "translation": "единственное число"
+   }
+  ]
+ },
+ {
+  "num": 345,
+  "kanji": "簡",
+  "level": "N3",
+  "words": [
+   {
+    "word": "簡単な",
+    "reading": "かんたんな",
+    "translation": "простой, лёгкий"
+   }
+  ]
+ },
+ {
+  "num": 346,
+  "kanji": "難",
+  "level": "N3",
+  "words": [
+   {
+    "word": "困難な",
+    "reading": "こんなんな",
+    "translation": "трудный"
+   },
+   {
+    "word": "〜難い",
+    "reading": "〜がたい",
+    "translation": "трудно (~трудно сделать)"
+   },
+   {
+    "word": "難しい",
+    "reading": "むずかしい",
+    "translation": "трудный, сложный"
+   }
+  ]
+ },
+ {
+  "num": 347,
+  "kanji": "細",
+  "level": "N3",
+  "words": [
+   {
+    "word": "細い",
+    "reading": "ほそい",
+    "translation": "тонкий"
+   },
+   {
+    "word": "細かい",
+    "reading": "こまかい",
+    "translation": "мелкий, подробный"
+   }
+  ]
+ },
+ {
+  "num": 348,
+  "kanji": "太",
+  "level": "N3",
+  "words": [
+   {
+    "word": "太平洋",
+    "reading": "たいへいよう",
+    "translation": "Тихий океан"
+   },
+   {
+    "word": "太い",
+    "reading": "ふとい",
+    "translation": "толстый"
+   },
+   {
+    "word": "太る",
+    "reading": "ふとる",
+    "translation": "толстеть, полнеть"
+   }
+  ]
+ },
+ {
+  "num": 349,
+  "kanji": "狭",
+  "level": "N3",
+  "words": [
+   {
+    "word": "狭い",
+    "reading": "せまい",
+    "translation": "узкий, тесный"
+   }
+  ]
+ },
+ {
+  "num": 350,
+  "kanji": "浅",
+  "level": "N3",
+  "words": [
+   {
+    "word": "浅い",
+    "reading": "あさい",
+    "translation": "мелкий, неглубокий"
+   }
+  ]
+ },
+ {
+  "num": 351,
+  "kanji": "深",
+  "level": "N3",
+  "words": [
+   {
+    "word": "深夜",
+    "reading": "しんや",
+    "translation": "глубокая ночь, полночь"
+   },
+   {
+    "word": "深い",
+    "reading": "ふかい",
+    "translation": "глубокий"
+   }
+  ]
+ },
+ {
+  "num": 352,
+  "kanji": "静",
+  "level": "N3",
+  "words": [
+   {
+    "word": "冷静な",
+    "reading": "れいせいな",
+    "translation": "спокойный, хладнокровный"
+   },
+   {
+    "word": "静かな",
+    "reading": "しずかな",
+    "translation": "тихий, спокойный"
+   }
+  ]
+ },
+ {
+  "num": 353,
+  "kanji": "涼",
+  "level": "N3",
+  "words": [
+   {
+    "word": "涼しい",
+    "reading": "すずしい",
+    "translation": "прохладный"
+   }
+  ]
+ },
+ {
+  "num": 354,
+  "kanji": "暖",
+  "level": "N3",
+  "words": [
+   {
+    "word": "温暖な",
+    "reading": "おんだんな",
+    "translation": "тёплый, мягкий (климат)"
+   },
+   {
+    "word": "暖房",
+    "reading": "だんぼう",
+    "translation": "отопление"
+   },
+   {
+    "word": "暖かい",
+    "reading": "あたたかい",
+    "translation": "тёплый"
+   }
+  ]
+ },
+ {
+  "num": 355,
+  "kanji": "冷",
+  "level": "N3",
+  "words": [
+   {
+    "word": "冷房",
+    "reading": "れいぼう",
+    "translation": "кондиционер (охлаждение)"
+   },
+   {
+    "word": "冷たい",
+    "reading": "つめたい",
+    "translation": "холодный (на ощупь)"
+   },
+   {
+    "word": "冷える",
+    "reading": "ひえる",
+    "translation": "охлаждаться, мёрзнуть"
+   },
+   {
+    "word": "冷やす",
+    "reading": "ひやす",
+    "translation": "охлаждать"
+   },
+   {
+    "word": "冷める",
+    "reading": "さめる",
+    "translation": "остывать"
+   },
+   {
+    "word": "冷ます",
+    "reading": "さます",
+    "translation": "остужать"
+   }
+  ]
+ },
+ {
+  "num": 356,
+  "kanji": "温",
+  "level": "N3",
+  "words": [
+   {
+    "word": "温度",
+    "reading": "おんど",
+    "translation": "температура"
+   },
+   {
+    "word": "気温",
+    "reading": "きおん",
+    "translation": "температура воздуха"
+   },
+   {
+    "word": "体温",
+    "reading": "たいおん",
+    "translation": "температура тела"
+   },
+   {
+    "word": "温かい",
+    "reading": "あたたかい",
+    "translation": "тёплый"
+   }
+  ]
+ },
+ {
+  "num": 357,
+  "kanji": "熱",
+  "level": "N3",
+  "words": [
+   {
+    "word": "熱",
+    "reading": "ねつ",
+    "translation": "жар, температура, тепло"
+   },
+   {
+    "word": "熱い",
+    "reading": "あつい",
+    "translation": "горячий"
+   }
+  ]
+ },
+ {
+  "num": 358,
+  "kanji": "困",
+  "level": "N3",
+  "words": [
+   {
+    "word": "困難な",
+    "reading": "こんなんな",
+    "translation": "трудный, затруднительный"
+   },
+   {
+    "word": "困る",
+    "reading": "こまる",
+    "translation": "быть в затруднении, растеряться"
+   }
+  ]
+ },
+ {
+  "num": 359,
+  "kanji": "球",
+  "level": "N3",
+  "words": [
+   {
+    "word": "地球",
+    "reading": "ちきゅう",
+    "translation": "Земля (планета)"
+   },
+   {
+    "word": "球",
+    "reading": "たま",
+    "translation": "мяч, шар"
+   }
+  ]
+ },
+ {
+  "num": 360,
+  "kanji": "化",
+  "level": "N3",
+  "words": [
+   {
+    "word": "変化する",
+    "reading": "へんかする",
+    "translation": "меняться, изменяться"
+   },
+   {
+    "word": "文化",
+    "reading": "ぶんか",
+    "translation": "культура"
+   },
+   {
+    "word": "化粧",
+    "reading": "けしょう",
+    "translation": "макияж, косметика"
+   }
+  ]
+ },
+ {
+  "num": 361,
+  "kanji": "馬",
+  "level": "N3",
+  "words": [
+   {
+    "word": "乗馬",
+    "reading": "じょうば",
+    "translation": "верховая езда"
+   },
+   {
+    "word": "馬",
+    "reading": "うま",
+    "translation": "лошадь"
+   }
+  ]
+ },
+ {
+  "num": 362,
+  "kanji": "象",
+  "level": "N3",
+  "words": [
+   {
+    "word": "気象",
+    "reading": "きしょう",
+    "translation": "погодные условия, метеорология"
+   },
+   {
+    "word": "現象",
+    "reading": "げんしょう",
+    "translation": "явление, феномен"
+   },
+   {
+    "word": "象",
+    "reading": "ぞう",
+    "translation": "слон"
+   }
+  ]
+ },
+ {
+  "num": 363,
+  "kanji": "竹",
+  "level": "N3",
+  "words": [
+   {
+    "word": "竹",
+    "reading": "たけ",
+    "translation": "бамбук"
+   }
+  ]
+ },
+ {
+  "num": 364,
+  "kanji": "糸",
+  "level": "N3",
+  "words": [
+   {
+    "word": "糸",
+    "reading": "いと",
+    "translation": "нить, нитка"
+   }
+  ]
+ },
+ {
+  "num": 365,
+  "kanji": "貝",
+  "level": "N3",
+  "words": [
+   {
+    "word": "貝",
+    "reading": "かい",
+    "translation": "ракушка, моллюск"
+   }
+  ]
+ },
+ {
+  "num": 366,
+  "kanji": "毛",
+  "level": "N3",
+  "words": [
+   {
+    "word": "羊毛",
+    "reading": "ようもう",
+    "translation": "шерсть (овечья)"
+   },
+   {
+    "word": "毛",
+    "reading": "け",
+    "translation": "волос, шерсть"
+   },
+   {
+    "word": "毛糸",
+    "reading": "けいと",
+    "translation": "шерстяная пряжа"
+   }
+  ]
+ },
+ {
+  "num": 367,
+  "kanji": "舟",
+  "level": "N3",
+  "words": [
+   {
+    "word": "舟",
+    "reading": "ふね",
+    "translation": "лодка"
+   }
+  ]
+ },
+ {
+  "num": 368,
+  "kanji": "石",
+  "level": "N3",
+  "words": [
+   {
+    "word": "石油",
+    "reading": "せきゆ",
+    "translation": "нефть"
+   },
+   {
+    "word": "石けん",
+    "reading": "せっけん",
+    "translation": "мыло"
+   },
+   {
+    "word": "磁石",
+    "reading": "じしゃく",
+    "translation": "магнит"
+   },
+   {
+    "word": "石",
+    "reading": "いし",
+    "translation": "камень"
+   }
+  ]
+ },
+ {
+  "num": 369,
+  "kanji": "岩",
+  "level": "N3",
+  "words": [
+   {
+    "word": "溶岩",
+    "reading": "ようがん",
+    "translation": "лава"
+   },
+   {
+    "word": "岩",
+    "reading": "いわ",
+    "translation": "скала, камень"
+   }
+  ]
+ },
+ {
+  "num": 370,
+  "kanji": "畑",
+  "level": "N3",
+  "words": [
+   {
+    "word": "畑",
+    "reading": "はたけ",
+    "translation": "поле (возделанное), огород"
+   }
+  ]
+ }
+];
+const LEVELS = [{"name": "N5・N4", "from": 1, "to": 300}, {"name": "N3", "from": 301, "to": 370}];
+/* KANJI_DATA_END */
+</script>
+<script>
+// ============ ROMAJI -> HIRAGANA ============
+const romajiMap = {
+  "kya":"きゃ","kyu":"きゅ","kyo":"きょ",
+  "sha":"しゃ","shu":"しゅ","sho":"しょ","shi":"し",
+  "cha":"ちゃ","chu":"ちゅ","cho":"ちょ","chi":"ち",
+  "nya":"にゃ","nyu":"にゅ","nyo":"にょ",
+  "hya":"ひゃ","hyu":"ひゅ","hyo":"ひょ",
+  "mya":"みゃ","myu":"みゅ","myo":"みょ",
+  "rya":"りゃ","ryu":"りゅ","ryo":"りょ",
+  "gya":"ぎゃ","gyu":"ぎゅ","gyo":"ぎょ",
+  "ja":"じゃ","ju":"じゅ","jo":"じょ","ji":"じ",
+  "jya":"じゃ","jyu":"じゅ","jyo":"じょ",
+  "bya":"びゃ","byu":"びゅ","byo":"びょ",
+  "pya":"ぴゃ","pyu":"ぴゅ","pyo":"ぴょ",
+  "tsu":"つ","fu":"ふ",
+  "ka":"か","ki":"き","ku":"く","ke":"け","ko":"こ",
+  "sa":"さ","si":"し","su":"す","se":"せ","so":"そ",
+  "ta":"た","ti":"ち","tu":"つ","te":"て","to":"と",
+  "na":"な","ni":"に","nu":"ぬ","ne":"ね","no":"の",
+  "ha":"は","hi":"ひ","he":"へ","ho":"ほ",
+  "ma":"ま","mi":"み","mu":"む","me":"め","mo":"も",
+  "ya":"や","yu":"ゆ","yo":"よ",
+  "ra":"ら","ri":"り","ru":"る","re":"れ","ro":"ろ",
+  "wa":"わ","wo":"を","nn":"ん",
+  "ga":"が","gi":"ぎ","gu":"ぐ","ge":"げ","go":"ご",
+  "za":"ざ","zu":"ず","ze":"ぜ","zo":"ぞ","zi":"じ",
+  "da":"だ","di":"ぢ","du":"づ","de":"で","do":"ど",
+  "dzu":"づ",
+  "ba":"ば","bi":"び","bu":"ぶ","be":"べ","bo":"ぼ",
+  "pa":"ぱ","pi":"ぴ","pu":"ぷ","pe":"ぺ","po":"ぽ",
+  "a":"あ","i":"い","u":"う","e":"え","o":"お",
+  "n":"ん"
+};
+
+function romajiToHiragana(input) {
+  let str = input.toLowerCase().trim();
+  str = str.replace(/ō/g, "ou").replace(/ū/g, "uu").replace(/ā/g, "aa")
+           .replace(/ē/g, "ee").replace(/ī/g, "ii");
+  let result = "";
+  let i = 0;
+  while (i < str.length) {
+    let matched = false;
+    if (i + 1 < str.length && str[i] === str[i+1] && "kstpgzdbcfhmyrwj".includes(str[i])) {
+      result += "っ"; i++; continue;
+    }
+    for (let len = 3; len >= 1; len--) {
+      const chunk = str.substr(i, len);
+      if (romajiMap[chunk]) { result += romajiMap[chunk]; i += len; matched = true; break; }
+    }
+    if (!matched) {
+      if (str[i] === '-' || str[i] === ' ' || str[i] === "'") i++;
+      else { result += str[i]; i++; }
+    }
+  }
+  return result;
+}
+
+// ============ Нормализация чтений ============
+function kataToHira(s) {
+  return s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+}
+// Убираем разметку окуриганы/долготы и приводим к хирагане
+function cleanReading(r) {
+  return kataToHira(r).replace(/[（）()\-－―~～「」・,，、\s]/g, "");
+}
+// Все допустимые варианты чтения для слова (если их несколько через запятую)
+function acceptableReadings(raw) {
+  const parts = raw.split(/[,，、]/).map(p => cleanReading(p)).filter(Boolean);
+  return [...new Set(parts)];
+}
+
+// ============ Подготовка данных ============
+const MAX_NUM = KANJI_DATA.reduce((m, e) => Math.max(m, e.num), 0);
+
+// Глобальный пул чтений для генерации неправильных вариантов
+const READING_POOL = (() => {
+  const set = new Set();
+  for (const e of KANJI_DATA) for (const w of e.words) {
+    const r = cleanReading(w.reading.split(/[,，、]/)[0]);
+    if (r) set.add(r);
+  }
+  return [...set];
+})();
+
+function shuffleArray(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+// Собираем слова из выбранного диапазона кандзи
+function wordsInRange(from, to) {
+  const out = [];
+  for (const e of KANJI_DATA) {
+    if (e.num < from || e.num > to) continue;
+    for (const w of e.words) {
+      const accepts = acceptableReadings(w.reading);
+      if (!accepts.length) continue;
+      out.push({
+        id: `${e.num}|${w.word}|${w.reading}`,
+        kanji: e.kanji, num: e.num, level: e.level || '',
+        word: w.word, translation: w.translation,
+        rawReading: w.reading,
+        accepts, correct: accepts[0]
+      });
+    }
+  }
+  return out;
+}
+function allWords() { return wordsInRange(1, MAX_NUM); }
+
+// 3 неправильных варианта: предпочитаем чтения той же длины
+function makeDistractors(correct) {
+  const len = correct.length;
+  const sameLen = shuffleArray(READING_POOL.filter(r => r !== correct && r.length === len));
+  const other = shuffleArray(READING_POOL.filter(r => r !== correct && r.length !== len));
+  const pick = [];
+  for (const r of [...sameLen, ...other]) {
+    if (pick.length >= 3) break;
+    if (!pick.includes(r)) pick.push(r);
+  }
+  while (pick.length < 3) pick.push(correct + "っ"); // крайний случай
+  return pick;
+}
+
+// ============ Состояние ============
+let questions = [];      // объекты слов текущей сессии
+let order = [];          // индексы в questions
+let currentQ = 0;
+let perfect = 0, partial = 0, wrong = 0;
+let answered = false, typedAnswer = false;
+let questionState = 'typing';
+let mistakes = [];                 // ошибки этой сессии (id)
+let isReviewMode = false;
+let lastSetup = { from: 1, to: 20, count: 20, randomAll: false };
+
+// Накопленные ошибки между сессиями
+const STORE_KEY = 'kanji_trainer_mistakes';
+let allTimeMistakes = new Set(loadMistakes());
+function loadMistakes() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch (e) { return []; }
+}
+function saveMistakes() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify([...allTimeMistakes])); } catch (e) {}
+}
+
+// ============ Экран настройки ============
+let setupWired = false;
+
+function initSetup() {
+  document.getElementById('setupHint').textContent =
+    `Всего в базе: ${KANJI_DATA.length} кандзи, ${allWords().length} слов (номера 1–${MAX_NUM}).`;
+  document.getElementById('rangeFrom').max = MAX_NUM;
+  document.getElementById('rangeTo').max = MAX_NUM;
+
+  renderLevelButtons();
+
+  if (!setupWired) {
+    document.getElementById('rangeFrom').addEventListener('input', updateRangeInfo);
+    document.getElementById('rangeTo').addEventListener('input', updateRangeInfo);
+    document.querySelectorAll('#qcountRow .preset').forEach(el => {
+      el.onclick = () => {
+        document.querySelectorAll('#qcountRow .preset').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+      };
+    });
+    setupWired = true;
+  }
+
+  // По умолчанию — самый новый уровень (его сейчас и учим)
+  applyLevel(LEVELS.length ? LEVELS[LEVELS.length - 1] : null);
+  updateReviewButton();
+}
+
+// Кнопки выбора уровня: «Все» + каждый уровень из базы
+function renderLevelButtons() {
+  const box = document.getElementById('levelButtons');
+  box.innerHTML = '';
+  const make = (label, lvl) => {
+    const b = document.createElement('div');
+    b.className = 'preset';
+    b.textContent = label;
+    b.onclick = () => applyLevel(lvl);
+    box.appendChild(b);
+  };
+  make('Все уровни', null);
+  for (const lv of LEVELS) make(`${lv.name} (${lv.from}–${lv.to})`, lv);
+}
+
+function applyLevel(lvl) {
+  // подсветка активной кнопки уровня
+  const btns = document.querySelectorAll('#levelButtons .preset');
+  btns.forEach((b, i) => {
+    const active = lvl === null ? i === 0 : !!(LEVELS[i - 1] && LEVELS[i - 1].name === lvl.name);
+    b.classList.toggle('active', active);
+  });
+  const from = lvl ? lvl.from : 1;
+  const to = lvl ? lvl.to : MAX_NUM;
+  document.getElementById('rangeFrom').value = from;
+  document.getElementById('rangeTo').value = to;
+  renderRangePresets(from, to);
+  updateRangeInfo();
+}
+
+// Пресеты диапазонов по 20 кандзи в пределах [lo, hi]
+function renderRangePresets(lo, hi) {
+  const presets = document.getElementById('rangePresets');
+  presets.innerHTML = '';
+  for (let start = lo; start <= hi; start += 20) {
+    const end = Math.min(start + 19, hi);
+    const b = document.createElement('div');
+    b.className = 'preset';
+    b.textContent = `${start}–${end}`;
+    b.onclick = () => {
+      document.getElementById('rangeFrom').value = start;
+      document.getElementById('rangeTo').value = end;
+      updateRangeInfo();
+    };
+    presets.appendChild(b);
+  }
+}
+
+function readRange() {
+  let from = parseInt(document.getElementById('rangeFrom').value) || 1;
+  let to = parseInt(document.getElementById('rangeTo').value) || MAX_NUM;
+  from = Math.max(1, Math.min(from, MAX_NUM));
+  to = Math.max(from, Math.min(to, MAX_NUM));
+  return { from, to };
+}
+
+function selectedCount() {
+  const el = document.querySelector('#qcountRow .preset.active');
+  return el ? parseInt(el.dataset.count) : 20;
+}
+
+function updateRangeInfo() {
+  const { from, to } = readRange();
+  const ws = wordsInRange(from, to);
+  const kanjis = KANJI_DATA.filter(e => e.num >= from && e.num <= to).map(e => e.kanji).join(' ');
+  document.getElementById('rangeInfo').innerHTML =
+    `Кандзи: <b>${KANJI_DATA.filter(e => e.num >= from && e.num <= to).length}</b>, слов: <b>${ws.length}</b><br>` +
+    `<span style="font-size:22px;letter-spacing:2px;">${kanjis || '—'}</span>`;
+}
+
+// ============ Запуск сессии ============
+function startFromSetup() {
+  const { from, to } = readRange();
+  const count = selectedCount();
+  const pool = wordsInRange(from, to);
+  if (!pool.length) { alert('В этом диапазоне нет слов'); return; }
+  lastSetup = { from, to, count, randomAll: false };
+  beginSession(pool, count);
+}
+
+function startRandomAll() {
+  const count = selectedCount() || 30;
+  lastSetup = { from: 1, to: MAX_NUM, count, randomAll: true };
+  beginSession(allWords(), count);
+}
+
+function beginSession(pool, count) {
+  isReviewMode = false;
+  document.getElementById('modeBadge').classList.remove('show');
+  questions = shuffleArray(pool);
+  const n = count > 0 ? Math.min(count, questions.length) : questions.length;
+  order = [...Array(n).keys()];
+  resetSession();
+  showQuestion();
+}
+
+function startReviewMode() {
+  if (allTimeMistakes.size === 0) return;
+  const pool = allWords().filter(w => allTimeMistakes.has(w.id));
+  if (!pool.length) return;
+  isReviewMode = true;
+  const badge = document.getElementById('modeBadge');
+  badge.classList.add('show');
+  badge.textContent = `🔥 Режим повторения ошибок (${pool.length})`;
+  questions = shuffleArray(pool);
+  order = [...Array(questions.length).keys()];
+  resetSession();
+  showQuestion();
+}
+
+function restartQuiz() {
+  if (lastSetup.randomAll) startRandomAll();
+  else beginSession(wordsInRange(lastSetup.from, lastSetup.to), lastSetup.count);
+}
+
+function goSetup() {
+  hideAll();
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('modeBadge').classList.remove('show');
+  initSetup();
+}
+
+function hideAll() {
+  ['setupScreen','quizCard','resultScreen','statsBar','progressWrap','controls']
+    .forEach(id => document.getElementById(id).classList.add('hidden'));
+}
+
+function resetSession() {
+  currentQ = 0; perfect = 0; partial = 0; wrong = 0; mistakes = [];
+  document.getElementById('perfectCount').textContent = 0;
+  document.getElementById('partialCount').textContent = 0;
+  document.getElementById('wrongCount').textContent = 0;
+  hideAll();
+  document.getElementById('quizCard').classList.remove('hidden');
+  document.getElementById('statsBar').classList.remove('hidden');
+  document.getElementById('progressWrap').classList.remove('hidden');
+  document.getElementById('controls').classList.remove('hidden');
+  updateReviewButton();
+}
+
+function updateReviewButton() {
+  const n = allTimeMistakes.size;
+  const badge = document.getElementById('mistakeBadge');
+  if (badge) badge.textContent = n;
+  const btn = document.getElementById('reviewBtn');
+  if (btn) btn.disabled = n === 0;
+}
+
+// ============ Показ вопроса ============
+function showQuestion() {
+  if (order.length === 0) { showResults(); return; }
+  answered = false; typedAnswer = false; questionState = 'typing';
+
+  const q = questions[order[currentQ]];
+  document.getElementById('wordDisplay').textContent = q.word;
+  document.getElementById('kanjiChip').innerHTML =
+    `кандзи: ${q.kanji}  ·  №${q.num}` + (q.level ? `<span class="level-badge">${q.level}</span>` : '');
+  document.getElementById('translation').textContent = '💬 ' + q.translation;
+
+  const input = document.getElementById('romajiInput');
+  input.value = ''; input.disabled = false;
+  input.classList.remove('correct', 'wrong');
+  document.getElementById('hiraganaPreview').textContent = '';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('inputSection').style.display = 'block';
+  document.getElementById('optionsSection').classList.remove('show');
+  document.getElementById('options').innerHTML = '';
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('show'); fb.className = 'feedback';
+  document.getElementById('nextBtn').classList.add('hidden');
+
+  document.getElementById('counter').textContent = `${currentQ + 1} / ${order.length}`;
+  document.getElementById('progressBar').style.width = ((currentQ + 1) / order.length * 100) + '%';
+
+  setTimeout(() => input.focus(), 100);
+}
+
+function checkRomaji() {
+  if (questionState !== 'typing') return;
+  const input = document.getElementById('romajiInput');
+  const userInput = input.value.trim();
+  if (!userInput) return;
+  typedAnswer = true;
+  const q = questions[order[currentQ]];
+  const userHiragana = romajiToHiragana(userInput);
+  const feedback = document.getElementById('feedback');
+
+  if (q.accepts.includes(userHiragana)) {
+    questionState = 'done'; answered = true;
+    input.classList.add('correct'); input.disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    perfect++;
+    document.getElementById('perfectCount').textContent = perfect;
+    feedback.className = 'feedback correct show';
+    feedback.innerHTML = `🌟 <strong>Отлично! С первого раза!</strong><br>«${q.word}» — ${q.correct}`;
+    if (isReviewMode && allTimeMistakes.has(q.id)) {
+      allTimeMistakes.delete(q.id); saveMistakes(); updateReviewButton();
+    }
+    showNext();
+  } else {
+    questionState = 'choosing';
+    input.classList.add('wrong'); input.disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    feedback.className = 'feedback partial show';
+    feedback.innerHTML = `❌ Неверно: «${userHiragana || userInput}». Выбери правильный вариант ниже:`;
+    showOptions(q);
+  }
+}
+
+function showOptions(q) {
+  const all = shuffleArray([q.correct, ...makeDistractors(q.correct)]);
+  document.getElementById('options').innerHTML = all.map((opt, i) =>
+    `<div class="option" data-opt="${encodeURIComponent(opt)}">${opt}</div>`
+  ).join('');
+  document.querySelectorAll('#options .option').forEach(el => {
+    el.onclick = () => checkChoice(decodeURIComponent(el.dataset.opt), q.correct, el, q.id);
+  });
+  document.getElementById('optionsSection').classList.add('show');
+}
+
+function checkChoice(selected, correctAnswer, element, qId) {
+  if (questionState !== 'choosing') return;
+  questionState = 'done'; answered = true;
+  document.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+  const feedback = document.getElementById('feedback');
+  const q = questions.find(x => x.id === qId);
+
+  if (!mistakes.includes(qId)) mistakes.push(qId);
+  allTimeMistakes.add(qId); saveMistakes(); updateReviewButton();
+
+  if (selected === correctAnswer) {
+    element.classList.add('correct');
+    partial++;
+    document.getElementById('partialCount').textContent = partial;
+    feedback.className = 'feedback partial show';
+    feedback.innerHTML = `✏️ <strong>Правильно из вариантов!</strong> Запомни: «${correctAnswer}»<br><small>${q.word} — ${q.translation} · кандзи <strong style="font-size:20px;color:#764ba2">${q.kanji}</strong></small>`;
+  } else {
+    element.classList.add('wrong');
+    document.querySelectorAll('.option').forEach(o => {
+      if (o.textContent === correctAnswer) o.classList.add('correct');
+    });
+    wrong++;
+    document.getElementById('wrongCount').textContent = wrong;
+    feedback.className = 'feedback wrong show';
+    feedback.innerHTML = `❌ <strong>Неверно.</strong> Правильно: «${correctAnswer}»<br><small>${q.word} — ${q.translation} · кандзи <strong style="font-size:20px;color:#764ba2">${q.kanji}</strong></small>`;
+  }
+  showNext();
+}
+
+function showNext() {
+  const btn = document.getElementById('nextBtn');
+  btn.classList.remove('hidden');
+  btn.textContent = (currentQ + 1 >= order.length) ? 'Завершить 🏁' : 'Следующий ➡️';
+  btn.focus();
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= order.length) showResults();
+  else showQuestion();
+}
+
+function showResults() {
+  hideAll();
+  document.getElementById('resultScreen').classList.remove('hidden');
+
+  const total = order.length;
+  const percentPerfect = total > 0 ? Math.round(perfect / total * 100) : 0;
+  document.getElementById('resultScore').textContent = `${perfect} / ${total}`;
+  document.getElementById('finalPerfect').textContent = perfect;
+  document.getElementById('finalPartial').textContent = partial;
+  document.getElementById('finalWrong').textContent = wrong;
+
+  let emoji, title, msg;
+  if (isReviewMode && allTimeMistakes.size === 0) {
+    emoji = '🏆'; title = 'Все ошибки исправлены!'; msg = 'Превосходно! Ты проработал все сложные слова.';
+  } else if (percentPerfect === 100) {
+    emoji = '🏆'; title = 'Идеально!'; msg = 'Все ответы с первого раза! Ты — мастер!';
+  } else if (percentPerfect >= 80) {
+    emoji = '🎉'; title = 'Отлично!'; msg = 'Великолепный результат с первой попытки!';
+  } else if (percentPerfect >= 60) {
+    emoji = '👍'; title = 'Хорошо!'; msg = 'Хороший результат, но есть что подтянуть.';
+  } else if (percentPerfect >= 40) {
+    emoji = '💪'; title = 'Можно лучше'; msg = 'Тренируйся — и точно справишься!';
+  } else {
+    emoji = '📚'; title = 'Нужно повторить'; msg = 'Проработай ошибки и попробуй снова!';
+  }
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultMessage').textContent = msg;
+
+  const mistakesList = document.getElementById('mistakesList');
+  const mistakesContent = document.getElementById('mistakesContent');
+  if (mistakes.length > 0) {
+    mistakesList.classList.remove('hidden');
+    mistakesContent.innerHTML = mistakes.map(id => {
+      const q = questions.find(x => x.id === id);
+      return `<div class="mistake-item">
+        <span class="kanji-big">${q.kanji}</span> &nbsp;
+        <strong>${q.word}</strong> → <span style="color:#2e7d32;">${q.correct}</span>
+        &nbsp;<span style="color:#999;">${q.translation}</span>
+      </div>`;
+    }).join('');
+  } else {
+    mistakesList.classList.add('hidden');
+  }
+
+  const reviewResultBtn = document.getElementById('reviewResultBtn');
+  if (allTimeMistakes.size > 0) {
+    reviewResultBtn.classList.remove('hidden');
+    reviewResultBtn.textContent = `🔥 Проработать ошибки (${allTimeMistakes.size})`;
+  } else {
+    reviewResultBtn.classList.add('hidden');
+  }
+}
+
+// ============ Ввод ============
+document.getElementById('romajiInput').addEventListener('input', (e) => {
+  const text = e.target.value;
+  document.getElementById('hiraganaPreview').textContent = text ? romajiToHiragana(text) : '';
+});
+document.getElementById('romajiInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); if (questionState === 'typing') checkRomaji(); }
+});
+document.addEventListener('keydown', (e) => {
+  if (questionState === 'choosing' && e.key >= '1' && e.key <= '4') {
+    const options = document.querySelectorAll('.option');
+    const idx = parseInt(e.key) - 1;
+    if (options[idx] && document.activeElement.tagName !== 'INPUT') options[idx].click();
+  }
+  if (e.key === 'Enter' && questionState === 'done') nextQuestion();
+});
+
+// ============ Старт ============
+initSetup();
+</script>
+</body>
+</html>
