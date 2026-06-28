@@ -8301,9 +8301,214 @@ const KANJI_DATA = [
     "translation": "поле (возделанное), огород"
    }
   ]
+ },
+ {
+  "num": 371,
+  "kanji": "由",
+  "level": "N3",
+  "words": [
+   {
+    "word": "経由して",
+    "reading": "けいゆして",
+    "translation": "через, транзитом"
+   },
+   {
+    "word": "理由",
+    "reading": "りゆう",
+    "translation": "причина"
+   },
+   {
+    "word": "自由",
+    "reading": "じゆう",
+    "translation": "свобода"
+   }
+  ]
+ },
+ {
+  "num": 372,
+  "kanji": "油",
+  "level": "N3",
+  "words": [
+   {
+    "word": "石油",
+    "reading": "せきゆ",
+    "translation": "нефть"
+   },
+   {
+    "word": "しょう油",
+    "reading": "しょうゆ",
+    "translation": "соевый соус"
+   },
+   {
+    "word": "油",
+    "reading": "あぶら",
+    "translation": "масло"
+   }
+  ]
+ },
+ {
+  "num": 373,
+  "kanji": "官",
+  "level": "N3",
+  "words": [
+   {
+    "word": "官庁",
+    "reading": "かんちょう",
+    "translation": "государственное учреждение"
+   },
+   {
+    "word": "警官",
+    "reading": "けいかん",
+    "translation": "полицейский"
+   }
+  ]
+ },
+ {
+  "num": 374,
+  "kanji": "管",
+  "level": "N3",
+  "words": [
+   {
+    "word": "管理する",
+    "reading": "かんりする",
+    "translation": "управлять, заведовать"
+   },
+   {
+    "word": "管",
+    "reading": "くだ",
+    "translation": "труба, трубка"
+   }
+  ]
+ },
+ {
+  "num": 375,
+  "kanji": "島",
+  "level": "N3",
+  "words": [
+   {
+    "word": "半島",
+    "reading": "はんとう",
+    "translation": "полуостров"
+   },
+   {
+    "word": "島",
+    "reading": "しま",
+    "translation": "остров"
+   }
+  ]
+ },
+ {
+  "num": 376,
+  "kanji": "若",
+  "level": "N3",
+  "words": [
+   {
+    "word": "若い",
+    "reading": "わかい",
+    "translation": "молодой"
+   }
+  ]
+ },
+ {
+  "num": 377,
+  "kanji": "苦",
+  "level": "N3",
+  "words": [
+   {
+    "word": "苦労",
+    "reading": "くろう",
+    "translation": "трудности, тяготы"
+   },
+   {
+    "word": "苦しい",
+    "reading": "くるしい",
+    "translation": "мучительный, тяжёлый"
+   },
+   {
+    "word": "苦い",
+    "reading": "にがい",
+    "translation": "горький"
+   },
+   {
+    "word": "苦手な",
+    "reading": "にがてな",
+    "translation": "неумелый, нелюбимый (в чём-то слаб)"
+   }
+  ]
+ },
+ {
+  "num": 378,
+  "kanji": "向",
+  "level": "N3",
+  "words": [
+   {
+    "word": "方向",
+    "reading": "ほうこう",
+    "translation": "направление"
+   },
+   {
+    "word": "向く",
+    "reading": "むく",
+    "translation": "поворачиваться, быть обращённым"
+   },
+   {
+    "word": "向き",
+    "reading": "むき",
+    "translation": "направление, ориентация"
+   },
+   {
+    "word": "向ける",
+    "reading": "むける",
+    "translation": "направлять, обращать"
+   },
+   {
+    "word": "向かう",
+    "reading": "むかう",
+    "translation": "направляться, стоять напротив"
+   },
+   {
+    "word": "向かいの",
+    "reading": "むかいの",
+    "translation": "противоположный, напротив"
+   },
+   {
+    "word": "向こう",
+    "reading": "むこう",
+    "translation": "та сторона, напротив"
+   }
+  ]
+ },
+ {
+  "num": 379,
+  "kanji": "老",
+  "level": "N3",
+  "words": [
+   {
+    "word": "老人",
+    "reading": "ろうじん",
+    "translation": "старик, пожилой человек"
+   }
+  ]
+ },
+ {
+  "num": 380,
+  "kanji": "像",
+  "level": "N3",
+  "words": [
+   {
+    "word": "像",
+    "reading": "ぞう",
+    "translation": "статуя, изваяние"
+   },
+   {
+    "word": "想像する",
+    "reading": "そうぞうする",
+    "translation": "воображать, представлять"
+   }
+  ]
  }
 ];
-const LEVELS = [{"name": "N5・N4", "from": 1, "to": 300}, {"name": "N3", "from": 301, "to": 370}];
+const LEVELS = [{"name": "N5・N4", "from": 1, "to": 300}, {"name": "N3", "from": 301, "to": 380}];
 /* KANJI_DATA_END */
 </script>
 <script>
@@ -8393,20 +8598,40 @@ const READING_POOL = (() => {
 
 function shuffleArray(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
+const isSingleKanji = (s) => [...s].length === 1 && /[㐀-鿿々]/.test(s);
+
+// Все чтения для каждого одиночного иероглифа (он + кун).
+// Когда в квизе показан один иероглиф, любое из этих чтений — верное.
+const SINGLE_KANJI_READINGS = (() => {
+  const map = {};
+  for (const e of KANJI_DATA) for (const w of e.words) {
+    if (!isSingleKanji(w.word)) continue;
+    (map[w.word] = map[w.word] || new Set());
+    for (const r of acceptableReadings(w.reading)) map[w.word].add(r);
+  }
+  const out = {};
+  for (const k in map) out[k] = [...map[k]];
+  return out;
+})();
+
 // Собираем слова из выбранного диапазона кандзи
 function wordsInRange(from, to) {
   const out = [];
   for (const e of KANJI_DATA) {
     if (e.num < from || e.num > to) continue;
     for (const w of e.words) {
-      const accepts = acceptableReadings(w.reading);
-      if (!accepts.length) continue;
+      const own = acceptableReadings(w.reading);
+      if (!own.length) continue;
+      // Для одиночного иероглифа принимаем любое его чтение из базы
+      const accepts = isSingleKanji(w.word) && SINGLE_KANJI_READINGS[w.word]
+        ? [...new Set([...own, ...SINGLE_KANJI_READINGS[w.word]])]
+        : own;
       out.push({
         id: `${e.num}|${w.word}|${w.reading}`,
         kanji: e.kanji, num: e.num, level: e.level || '',
         word: w.word, translation: w.translation,
         rawReading: w.reading,
-        accepts, correct: accepts[0]
+        accepts, correct: own[0]
       });
     }
   }
@@ -8414,11 +8639,13 @@ function wordsInRange(from, to) {
 }
 function allWords() { return wordsInRange(1, MAX_NUM); }
 
-// 3 неправильных варианта: предпочитаем чтения той же длины
-function makeDistractors(correct) {
+// 3 неправильных варианта: предпочитаем чтения той же длины.
+// exclude — все верные чтения слова (чтобы среди вариантов не было второго правильного)
+function makeDistractors(correct, exclude = []) {
+  const bad = new Set([correct, ...exclude]);
   const len = correct.length;
-  const sameLen = shuffleArray(READING_POOL.filter(r => r !== correct && r.length === len));
-  const other = shuffleArray(READING_POOL.filter(r => r !== correct && r.length !== len));
+  const sameLen = shuffleArray(READING_POOL.filter(r => !bad.has(r) && r.length === len));
+  const other = shuffleArray(READING_POOL.filter(r => !bad.has(r) && r.length !== len));
   const pick = [];
   for (const r of [...sameLen, ...other]) {
     if (pick.length >= 3) break;
@@ -8671,7 +8898,10 @@ function checkRomaji() {
     perfect++;
     document.getElementById('perfectCount').textContent = perfect;
     feedback.className = 'feedback correct show';
-    feedback.innerHTML = `🌟 <strong>Отлично! С первого раза!</strong><br>«${q.word}» — ${q.correct}`;
+    const shown = (userHiragana !== q.correct && q.accepts.length > 1)
+      ? `${userHiragana} <span style="color:#888;font-size:14px">(тоже верно; ещё: ${q.accepts.filter(r => r !== userHiragana).join(', ')})</span>`
+      : q.correct;
+    feedback.innerHTML = `🌟 <strong>Отлично! С первого раза!</strong><br>«${q.word}» — ${shown}`;
     if (isReviewMode && allTimeMistakes.has(q.id)) {
       allTimeMistakes.delete(q.id); saveMistakes(); updateReviewButton();
     }
@@ -8687,7 +8917,7 @@ function checkRomaji() {
 }
 
 function showOptions(q) {
-  const all = shuffleArray([q.correct, ...makeDistractors(q.correct)]);
+  const all = shuffleArray([q.correct, ...makeDistractors(q.correct, q.accepts)]);
   document.getElementById('options').innerHTML = all.map((opt, i) =>
     `<div class="option" data-opt="${encodeURIComponent(opt)}">${opt}</div>`
   ).join('');
